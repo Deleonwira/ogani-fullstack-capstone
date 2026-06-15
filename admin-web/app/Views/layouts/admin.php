@@ -299,6 +299,90 @@ $active_page = $active_page ?? 'dashboard';
 </main>
 </div>
 
+<!-- Floating Action Bar for Batch Edit Mode -->
+<div id="batchEditBar" class="fixed bottom-0 left-[260px] right-0 bg-surface-container-high border-t border-outline-variant/30 shadow-[0_-4px_20px_rgba(0,0,0,0.1)] p-4 flex items-center justify-between z-50 transition-transform duration-300 translate-y-full">
+    <div>
+        <h3 class="text-title-md font-title-md text-on-surface">Unsaved Changes</h3>
+        <p class="text-label-sm font-label-sm text-on-surface-variant" id="batchEditCount">You have 0 pending changes.</p>
+    </div>
+    <div class="flex items-center gap-3">
+        <button onclick="cancelBatchChanges()" class="px-6 py-2.5 border border-outline-variant rounded-lg text-on-surface-variant hover:bg-surface-container-highest transition-colors font-label-md">Discard Changes</button>
+        <button onclick="saveBatchChanges()" class="px-6 py-2.5 bg-primary text-on-primary rounded-lg shadow-sm hover:shadow transition-shadow font-label-md flex items-center gap-2">
+            <span class="material-symbols-outlined" style="font-size: 18px;">save</span>
+            Save Changes
+        </button>
+    </div>
+</div>
+
+<script>
+window.pendingChanges = [];
+
+function updateBatchEditBar() {
+    const bar = document.getElementById('batchEditBar');
+    const countText = document.getElementById('batchEditCount');
+    if (window.pendingChanges.length > 0) {
+        bar.classList.remove('translate-y-full');
+        countText.innerText = `You have ${window.pendingChanges.length} pending changes.`;
+    } else {
+        bar.classList.add('translate-y-full');
+    }
+}
+
+function cancelBatchChanges() {
+    if(confirm('Are you sure you want to discard all unsaved changes?')) {
+        window.pendingChanges = [];
+        window.location.reload();
+    }
+}
+
+async function saveBatchChanges() {
+    const bar = document.getElementById('batchEditBar');
+    bar.style.opacity = '0.5';
+    bar.style.pointerEvents = 'none';
+    
+    try {
+        for (let change of window.pendingChanges) {
+            if (change.action === 'delete') {
+                await fetch(change.url, { method: 'GET' });
+            } else if (change.action === 'save') {
+                const formData = new FormData();
+                for(let key in change.data) formData.append(key, change.data[key]);
+                await fetch(change.url, {
+                    method: 'POST',
+                    body: formData
+                });
+            }
+        }
+        window.pendingChanges = [];
+        window.location.reload();
+    } catch (e) {
+        alert('An error occurred while saving changes.');
+        bar.style.opacity = '1';
+        bar.style.pointerEvents = 'auto';
+    }
+}
+
+window.addEventListener('beforeunload', function (e) {
+    if (window.pendingChanges.length > 0) {
+        var confirmationMessage = 'You have unsaved changes. Are you sure you want to leave?';
+        (e || window.event).returnValue = confirmationMessage; 
+        return confirmationMessage;
+    }
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('nav a').forEach(a => {
+        a.addEventListener('click', function(e) {
+            if (window.pendingChanges.length > 0) {
+                if(!confirm('You have unsaved changes. Are you sure you want to navigate away and discard them?')) {
+                    e.preventDefault();
+                }
+            }
+        });
+    });
+});
+</script>
+
 <script>
 // Global Search Logic
 function globalSearchComponent() {

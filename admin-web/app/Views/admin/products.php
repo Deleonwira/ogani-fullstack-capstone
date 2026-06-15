@@ -82,9 +82,9 @@
                                 <button onclick="openModal('<?= esc($p['productId']) ?>', '<?= esc($p['productName']) ?>', '<?= esc($p['price']) ?>', '<?= esc($p['stock']) ?>', '<?= esc($p['category']['categoryId'] ?? '') ?>', '<?= esc($p['productImage'] ?? '') ?>')" aria-label="Edit" class="text-on-surface-variant hover:text-primary p-1 rounded transition-colors">
                                     <span class="material-symbols-outlined" style="font-size: 20px;">edit</span>
                                 </button>
-                                <a href="<?= base_url('admin/products/delete/' . esc($p['productId'])) ?>" onclick="return confirm('Delete this product?')" aria-label="Delete" class="text-on-surface-variant hover:text-error p-1 rounded transition-colors">
+                                <button type="button" onclick="queueProductDelete('<?= esc($p['productId']) ?>', this, '<?= base_url('admin/products/delete/' . esc($p['productId'])) ?>')" aria-label="Delete" class="text-on-surface-variant hover:text-error p-1 rounded transition-colors">
                                     <span class="material-symbols-outlined" style="font-size: 20px;">delete</span>
-                                </a>
+                                </button>
                             </div>
                         </td>
                     </tr>
@@ -106,7 +106,7 @@
 <div id="productModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center overflow-y-auto">
     <div class="bg-surface rounded-xl shadow-lg w-full max-w-2xl p-6 m-4 mt-20">
         <h3 id="modalTitle" class="text-title-lg font-title-lg mb-4 text-on-surface">Add Product</h3>
-        <form action="<?= base_url('admin/products/save') ?>" method="POST">
+        <form id="productForm" onsubmit="event.preventDefault(); queueProductSave(this, '<?= base_url('admin/products/save') ?>');">
             <input type="hidden" name="id" id="productId">
             <div class="grid grid-cols-2 gap-4">
                 <div class="mb-4 col-span-2">
@@ -199,6 +199,50 @@ function openModal(id = '', name = '', price = '', stock = '', categoryId = '', 
 }
 function closeModal() {
     document.getElementById('productModal').classList.add('hidden');
+}
+
+function queueProductSave(form, url) {
+    const formData = new FormData(form);
+    const data = {};
+    formData.forEach((value, key) => data[key] = value);
+    
+    window.pendingChanges.push({
+        action: 'save',
+        url: url,
+        data: data
+    });
+    
+    closeModal();
+    if(typeof updateBatchEditBar === 'function') updateBatchEditBar();
+    
+    // Add visual indicator to table if possible, or just a toast
+    const tr = document.createElement('div');
+    tr.style.position = 'fixed';
+    tr.style.top = '20px';
+    tr.style.right = '20px';
+    tr.style.background = '#006e1c';
+    tr.style.color = 'white';
+    tr.style.padding = '10px 20px';
+    tr.style.borderRadius = '8px';
+    tr.style.zIndex = '9999';
+    tr.innerText = 'Product changes queued. Click "Save Changes" at the bottom to apply.';
+    document.body.appendChild(tr);
+    setTimeout(() => tr.remove(), 3000);
+}
+
+function queueProductDelete(id, btn, url) {
+    if(!confirm('Are you sure you want to delete this product? It will be marked for deletion.')) return;
+    
+    window.pendingChanges.push({
+        action: 'delete',
+        url: url
+    });
+    
+    const row = btn.closest('tr');
+    row.style.opacity = '0.3';
+    row.style.pointerEvents = 'none';
+    
+    if(typeof updateBatchEditBar === 'function') updateBatchEditBar();
 }
 </script>
 <?= $this->endSection() ?>
