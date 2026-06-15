@@ -2,22 +2,87 @@
 <?= $this->section('title') ?>Dashboard Overview<?= $this->endSection() ?>
 <?= $this->section('content') ?>
 <!-- Page Header -->
-<div class="mb-8 flex justify-between items-end">
-<div>
-<h2 class="font-headline-lg text-headline-lg text-on-surface">Dashboard Overview</h2>
-<p class="font-body-md text-body-md text-on-surface-variant mt-1">Welcome back. Here's what's happening today.</p>
+<div class="print-header">
+    <h1>Ogani Dashboard Report</h1>
+    <p>Generated on <?= date('Y-m-d H:i') ?> | Period: <?= isset($period) && is_numeric($period) ? $period . ' Days' : 'All Time' ?></p>
 </div>
-<div class="flex gap-3">
-<button class="flex items-center gap-2 px-4 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg font-label-md text-label-md text-on-surface hover:bg-surface-container-low transition-colors shadow-sm">
-<span class="material-symbols-outlined text-[18px]">calendar_month</span>
-                    Last 30 Days
-                </button>
-<button class="flex items-center gap-2 px-4 py-2 bg-primary text-on-primary rounded-lg font-label-md text-label-md hover:bg-surface-tint transition-colors shadow-sm">
-<span class="material-symbols-outlined text-[18px]">download</span>
-                    Export Report
-                </button>
+
+<div class="mb-8 flex justify-between items-end no-print-header">
+    <div>
+        <h2 class="font-headline-lg text-headline-lg text-on-surface">Dashboard Overview</h2>
+        <p class="font-body-md text-body-md text-on-surface-variant mt-1">Welcome back. Here's what's happening today.</p>
+    </div>
+    <div class="flex gap-3">
+        <!-- Filter Period -->
+        <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <span class="material-symbols-outlined text-[18px] text-on-surface-variant">calendar_month</span>
+            </div>
+            <select onchange="window.location.href='?period='+this.value" class="appearance-none pl-10 pr-8 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg font-label-md text-label-md text-on-surface hover:bg-surface-container-low transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20">
+                <option value="7" <?= (isset($period) && $period == '7') ? 'selected' : '' ?>>Last 7 Days</option>
+                <option value="30" <?= (!isset($period) || $period == '30') ? 'selected' : '' ?>>Last 30 Days</option>
+                <option value="90" <?= (isset($period) && $period == '90') ? 'selected' : '' ?>>Last 90 Days</option>
+                <option value="all" <?= (isset($period) && $period == 'all') ? 'selected' : '' ?>>All Time</option>
+            </select>
+            <div class="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none">
+                <span class="material-symbols-outlined text-[18px] text-on-surface-variant">arrow_drop_down</span>
+            </div>
+        </div>
+
+        <!-- Export Dropdown -->
+        <div class="relative">
+            <button onclick="document.getElementById('exportMenu').classList.toggle('hidden')" class="flex items-center gap-2 px-4 py-2 bg-primary text-on-primary rounded-lg font-label-md text-label-md hover:bg-surface-tint transition-colors shadow-sm">
+                <span class="material-symbols-outlined text-[18px]">download</span>
+                Export Report
+                <span class="material-symbols-outlined text-[18px]">arrow_drop_down</span>
+            </button>
+            <div id="exportMenu" class="hidden absolute right-0 mt-2 w-48 bg-surface-container-lowest rounded-lg shadow-lg border border-outline-variant/30 py-1 z-50">
+                <a href="/admin/dashboard/exportCsv<?= isset($period) ? '?period='.$period : '' ?>" class="flex items-center gap-3 px-4 py-2 text-label-md text-on-surface hover:bg-surface-container-low transition-colors">
+                    <span class="material-symbols-outlined text-[18px] text-primary">description</span>
+                    Export as CSV
+                </a>
+                <a target="_blank" href="/admin/dashboard/printReport<?= isset($period) ? '?period='.$period : '' ?>" class="w-full flex items-center gap-3 px-4 py-2 text-label-md text-on-surface hover:bg-surface-container-low transition-colors text-left">
+                    <span class="material-symbols-outlined text-[18px] text-error">picture_as_pdf</span>
+                    Save as PDF
+                </a>
+            </div>
+        </div>
+    </div>
 </div>
-</div>
+
+<script>
+function toggleActionMenu(event, menuId) {
+    event.stopPropagation();
+    // Close all other action menus first
+    document.querySelectorAll('.action-dropdown').forEach(function(menu) {
+        if (menu.id !== menuId) {
+            menu.classList.add('hidden');
+        }
+    });
+    // Toggle the clicked menu
+    var menu = document.getElementById(menuId);
+    if (menu) {
+        menu.classList.toggle('hidden');
+    }
+}
+
+document.addEventListener('click', function(event) {
+    // Handle export menu
+    var exportButton = event.target.closest('button[onclick*="exportMenu"]');
+    var exportMenu = document.getElementById('exportMenu');
+    if (!exportButton && exportMenu && !exportMenu.classList.contains('hidden')) {
+        exportMenu.classList.add('hidden');
+    }
+
+    // Handle action menus
+    if (!event.target.closest('button[onclick*="toggleActionMenu"]')) {
+        document.querySelectorAll('.action-dropdown').forEach(function(menu) {
+            menu.classList.add('hidden');
+        });
+    }
+});
+</script>
+
 <!-- Metrics Row -->
 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
 <!-- Metric 1 -->
@@ -88,7 +153,7 @@
 <div class="bg-surface-container-lowest rounded-xl shadow-[0px_4px_20px_rgba(0,0,0,0.03)] border border-outline-variant/30 overflow-hidden">
 <div class="p-6 border-b border-outline-variant/50 flex justify-between items-center">
 <h3 class="font-title-lg text-title-lg text-on-surface">Recent Orders</h3>
-<button class="font-label-md text-label-md text-primary hover:underline">View All</button>
+<a href="/admin/orders" class="font-label-md text-label-md text-primary hover:underline">View All</a>
 </div>
 <div class="overflow-x-auto custom-scrollbar">
 <table class="w-full text-left border-collapse">
@@ -129,10 +194,13 @@
                 <?= htmlspecialchars($order['orderStatus'] ?? 'pending') ?>
             </span>
         </td>
-        <td class="py-4 px-6 text-right">
-            <button class="text-on-surface-variant hover:text-primary transition-colors opacity-0 group-hover:opacity-100">
+        <td class="py-4 px-6 text-right relative">
+            <button onclick="toggleActionMenu(event, 'actionMenu<?= $order['orderId'] ?>')" class="text-on-surface-variant hover:text-primary transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100">
                 <span class="material-symbols-outlined text-[20px]">more_vert</span>
             </button>
+            <div id="actionMenu<?= $order['orderId'] ?>" class="action-dropdown hidden absolute right-6 top-10 mt-1 w-36 bg-surface-container-lowest rounded-lg shadow-lg border border-outline-variant/30 py-1 z-50 text-left">
+                <a href="/admin/orders" class="block px-4 py-2 text-label-md text-on-surface hover:bg-surface-container-low transition-colors">Manage Order</a>
+            </div>
         </td>
     </tr>
     <?php endforeach; ?>

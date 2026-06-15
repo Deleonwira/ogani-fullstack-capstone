@@ -50,12 +50,12 @@ public class UserController {
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<User>> updateProfile(@PathVariable Integer id, @RequestBody com.ogani.api.dto.request.UserUpdateRequest request) {
         User updatedUser = userService.updateProfile(id, request);
-        return ResponseEntity.ok(ApiResponse.success(updatedUser, "Profil berhasil diperbarui"));
+        return ResponseEntity.ok(ApiResponse.success("Profil berhasil diperbarui", updatedUser));
     }
 
     @PutMapping("/{id}/password")
     public ResponseEntity<ApiResponse<Void>> updatePassword(@PathVariable Integer id, @RequestBody com.ogani.api.dto.request.PasswordUpdateRequest request) {
         userService.updatePassword(id, request, passwordEncoder);
-        return ResponseEntity.ok(ApiResponse.success(null, "Password updated successfully"));
+        return ResponseEntity.ok(ApiResponse.<Void>success("Password updated successfully", null));
     }
 }

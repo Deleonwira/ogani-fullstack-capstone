@@ -212,11 +212,36 @@ $active_page = $active_page ?? 'dashboard';
 <!-- TopNavBar -->
 <header class="fixed top-0 right-0 h-topbar-height z-40 flex justify-between items-center w-[calc(100%-260px)] px-gutter bg-surface-container-lowest border-b border-outline-variant transition-all">
 <!-- Search (Left Aligned) -->
-<div class="flex-1 max-w-md">
-<div class="relative group">
-<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors">search</span>
-<input class="w-full h-10 pl-10 pr-4 bg-surface-container-low border border-transparent rounded-full font-body-md text-body-md text-on-surface placeholder:text-outline focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all bg-opacity-50" placeholder="Search orders, customers, or products..." type="text"/>
-</div>
+<div class="flex-1 max-w-md relative" x-data="globalSearchComponent()">
+    <div class="relative group">
+        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors">search</span>
+        <input x-model="query" @input.debounce.300ms="fetchResults" @focus="open = true" @click.outside="open = false" class="w-full h-10 pl-10 pr-4 bg-surface-container-low border border-transparent rounded-full font-body-md text-body-md text-on-surface placeholder:text-outline focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all bg-opacity-50" placeholder="Search orders, customers, or products..." type="text"/>
+        
+        <!-- Loading spinner -->
+        <span x-show="loading" class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-primary animate-spin text-[20px]" style="display: none;">progress_activity</span>
+    </div>
+
+    <!-- Dropdown Results -->
+    <div x-show="open && (results.length > 0 || query.length > 0)" style="display: none;" class="absolute left-0 mt-2 w-full max-w-md bg-surface-container-lowest border border-outline-variant rounded-xl shadow-lg z-50 overflow-hidden">
+        
+        <div x-show="results.length > 0" class="max-h-[400px] overflow-y-auto">
+            <template x-for="item in results" :key="item.url">
+                <a :href="item.url" class="flex items-center gap-3 p-3 border-b border-outline-variant/30 hover:bg-surface-container-low transition-colors text-left w-full">
+                    <div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-primary shrink-0">
+                        <span class="material-symbols-outlined" x-text="getIcon(item.type)"></span>
+                    </div>
+                    <div class="overflow-hidden">
+                        <p class="font-title-md text-title-md text-on-surface truncate" x-text="item.title"></p>
+                        <p class="font-body-md text-body-md text-on-surface-variant text-sm truncate" x-text="item.subtitle"></p>
+                    </div>
+                </a>
+            </template>
+        </div>
+
+        <div x-show="!loading && query.length > 0 && results.length === 0" class="p-4 text-center text-on-surface-variant text-sm">
+            No results found for "<span x-text="query"></span>"
+        </div>
+    </div>
 </div>
 <!-- Trailing Actions -->
 <div class="flex items-center gap-4 ml-auto">
@@ -273,4 +298,145 @@ $active_page = $active_page ?? 'dashboard';
 <?= $this->renderSection('content') ?>
 </main>
 </div>
+
+<script>
+// Global Search Logic
+function globalSearchComponent() {
+    return {
+        query: '',
+        results: [],
+        open: false,
+        loading: false,
+        async fetchResults() {
+            if (this.query.trim().length < 1) {
+                this.results = [];
+                this.open = false;
+                return;
+            }
+            this.loading = true;
+            this.open = true;
+            try {
+                const response = await fetch('/admin/search?q=' + encodeURIComponent(this.query));
+                this.results = await response.json();
+            } catch (error) {
+                console.error('Search failed:', error);
+                this.results = [];
+            }
+            this.loading = false;
+        },
+        getIcon(type) {
+            if (type === 'product') return 'inventory_2';
+            if (type === 'user') return 'person';
+            if (type === 'order') return 'receipt_long';
+            return 'search';
+        }
+    }
+}
+
+// Global Pagination Logic
+function setupPagination(tableId, paginationContainerId, rowsPerPage = 10, rowClass = '.paginate-row', itemType = 'items') {
+    const table = document.getElementById(tableId);
+    if (!table) return;
+
+    // Get only rows that are not filtered out by search/status
+    const allRows = Array.from(table.querySelectorAll(rowClass));
+    const visibleRows = allRows.filter(row => row.style.display !== 'none' && !row.classList.contains('hidden-by-filter'));
+    
+    const totalRows = visibleRows.length;
+    const totalPages = Math.ceil(totalRows / rowsPerPage);
+    let currentPage = 1;
+
+    // We store currentPage on the table element to remember state between filter changes
+    if (table.dataset.currentPage) {
+        currentPage = parseInt(table.dataset.currentPage);
+        if (currentPage > totalPages) currentPage = Math.max(1, totalPages);
+    }
+
+    table.dataset.currentPage = currentPage;
+
+    function render() {
+        const startIndex = (currentPage - 1) * rowsPerPage;
+        const endIndex = startIndex + rowsPerPage;
+
+        // Hide all visibleRows first, then show only the ones for this page
+        visibleRows.forEach((row, index) => {
+            if (index >= startIndex && index < endIndex) {
+                row.style.display = ''; // Reset display so it shows
+                row.classList.remove('hidden-by-pagination');
+            } else {
+                row.style.display = 'none';
+                row.classList.add('hidden-by-pagination');
+            }
+        });
+
+        renderPaginationUI();
+    }
+
+    function renderPaginationUI() {
+        const container = document.getElementById(paginationContainerId);
+        if (!container) return;
+
+        const startDisplay = totalRows === 0 ? 0 : ((currentPage - 1) * rowsPerPage) + 1;
+        const endDisplay = Math.min(currentPage * rowsPerPage, totalRows);
+
+        let html = `
+        <div class="font-body-md text-body-md text-on-surface-variant">
+            Showing <span class="font-medium text-on-surface">${startDisplay}</span> to <span class="font-medium text-on-surface">${endDisplay}</span> of <span class="font-medium text-on-surface">${totalRows}</span> ${itemType}
+        </div>
+        <div class="flex gap-1">
+            <button onclick="changePage('${tableId}', ${currentPage - 1})" class="p-2 border border-outline-variant rounded-lg text-on-surface-variant hover:bg-surface-container-low disabled:opacity-50 disabled:cursor-not-allowed transition-colors" ${currentPage === 1 ? 'disabled' : ''}>
+                <span class="material-symbols-outlined" style="font-size: 20px;">chevron_left</span>
+            </button>
+        `;
+
+        // Logic for page numbers (simplified to show up to 5 buttons max to avoid stretching)
+        let startPage = Math.max(1, currentPage - 2);
+        let endPage = Math.min(totalPages, startPage + 4);
+        
+        if (endPage - startPage < 4) {
+            startPage = Math.max(1, endPage - 4);
+        }
+
+        if (startPage > 1) {
+            html += `<button onclick="changePage('${tableId}', 1)" class="w-10 h-10 border border-outline-variant text-on-surface-variant rounded-lg font-title-md text-title-md hover:bg-surface-container-low transition-colors">1</button>`;
+            if (startPage > 2) html += `<span class="w-10 h-10 flex items-center justify-center text-on-surface-variant">...</span>`;
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+            if (i === currentPage) {
+                html += `<button class="w-10 h-10 border border-primary bg-primary-container/10 text-primary rounded-lg font-title-md text-title-md hover:bg-primary-container/20 transition-colors">${i}</button>`;
+            } else {
+                html += `<button onclick="changePage('${tableId}', ${i})" class="w-10 h-10 border border-outline-variant text-on-surface-variant rounded-lg font-title-md text-title-md hover:bg-surface-container-low transition-colors">${i}</button>`;
+            }
+        }
+
+        if (endPage < totalPages) {
+            if (endPage < totalPages - 1) html += `<span class="w-10 h-10 flex items-center justify-center text-on-surface-variant">...</span>`;
+            html += `<button onclick="changePage('${tableId}', ${totalPages})" class="w-10 h-10 border border-outline-variant text-on-surface-variant rounded-lg font-title-md text-title-md hover:bg-surface-container-low transition-colors">${totalPages}</button>`;
+        }
+
+        html += `
+            <button onclick="changePage('${tableId}', ${currentPage + 1})" class="p-2 border border-outline-variant rounded-lg text-on-surface-variant hover:bg-surface-container-low disabled:opacity-50 disabled:cursor-not-allowed transition-colors" ${currentPage === totalPages || totalPages === 0 ? 'disabled' : ''}>
+                <span class="material-symbols-outlined" style="font-size: 20px;">chevron_right</span>
+            </button>
+        </div>`;
+
+        container.innerHTML = html;
+    }
+
+    render();
+}
+
+// Global function to trigger page change
+window.changePage = function(tableId, newPage) {
+    const table = document.getElementById(tableId);
+    if (table) {
+        table.dataset.currentPage = newPage;
+        // Re-trigger the setup to re-render. 
+        // We look for a data attribute to know which container and config to use
+        const config = JSON.parse(table.dataset.paginationConfig || '{}');
+        setupPagination(tableId, config.containerId || 'paginationContainer', config.rowsPerPage || 10, config.rowClass || '.paginate-row', config.itemType || 'items');
+    }
+}
+</script>
 </body></html>

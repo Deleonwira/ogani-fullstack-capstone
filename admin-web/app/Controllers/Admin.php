@@ -53,8 +53,44 @@ class Admin extends BaseController
     }
     public function index()
     {
-        $stats = $this->fetchApi('dashboard/stats');
-        return view('admin/dashboard', ['active_page' => 'dashboard', 'stats' => $stats]);
+        $period = $this->request->getGet('period');
+        $endpoint = 'dashboard/stats';
+        if ($period && is_numeric($period)) {
+            $endpoint .= '?days=' . $period;
+        }
+        $stats = $this->fetchApi($endpoint);
+        return view('admin/dashboard', ['active_page' => 'dashboard', 'stats' => $stats, 'period' => $period]);
+    }
+
+    public function exportCsv()
+    {
+        $period = $this->request->getGet('period');
+        $endpoint = 'http://localhost:8080/api/dashboard/export';
+        if ($period && is_numeric($period)) {
+            $endpoint .= '?days=' . $period;
+        }
+
+        try {
+            $client = \Config\Services::curlrequest();
+            $response = $client->request('GET', $endpoint);
+            
+            return $this->response->setHeader('Content-Type', 'text/csv')
+                                  ->setHeader('Content-Disposition', 'attachment; filename="dashboard_report.csv"')
+                                  ->setBody($response->getBody());
+        } catch (\Exception $e) {
+            return redirect()->to('/admin/dashboard');
+        }
+    }
+
+    public function printReport()
+    {
+        $period = $this->request->getGet('period');
+        $endpoint = 'dashboard/report-data';
+        if ($period && is_numeric($period)) {
+            $endpoint .= '?days=' . $period;
+        }
+        $stats = $this->fetchApi($endpoint);
+        return view('admin/report_pdf', ['stats' => $stats, 'period' => $period]);
     }
 
     public function orders()
@@ -299,5 +335,66 @@ class Admin extends BaseController
         } catch (\Exception $e) {
             return $this->response->setStatusCode(500)->setJSON(['success' => false, 'message' => 'Terjadi kesalahan koneksi']);
         }
+    }
+
+    public function globalSearch()
+    {
+        $query = strtolower($this->request->getGet('q') ?? '');
+        if (empty($query)) {
+            return $this->response->setJSON([]);
+        }
+
+        $results = [];
+
+        // Fetch data from Java backend
+        $products = $this->fetchApi('products');
+        $users = $this->fetchApi('users');
+        $orders = $this->fetchApi('orders');
+
+        if (!empty($products)) {
+            foreach ($products as $p) {
+                if (strpos(strtolower($p['productName'] ?? ''), $query) !== false) {
+                    $results[] = [
+                        'type' => 'product',
+                        'title' => $p['productName'],
+                        'subtitle' => 'Rp ' . number_format($p['price'] ?? 0, 0, ',', '.'),
+                        'url' => '/admin/products?q=' . urlencode($p['productName'])
+                    ];
+                }
+            }
+        }
+
+        if (!empty($users)) {
+            foreach ($users as $u) {
+                $name = $u['fullName'] ?? $u['username'] ?? '';
+                $email = $u['email'] ?? '';
+                if (strpos(strtolower($name), $query) !== false || strpos(strtolower($email), $query) !== false) {
+                    $results[] = [
+                        'type' => 'user',
+                        'title' => $name,
+                        'subtitle' => $email,
+                        'url' => '/admin/users?q=' . urlencode($name)
+                    ];
+                }
+            }
+        }
+
+        if (!empty($orders)) {
+            foreach ($orders as $o) {
+                if (strpos(strtolower($o['orderId'] ?? ''), $query) !== false) {
+                    $results[] = [
+                        'type' => 'order',
+                        'title' => 'Order #' . $o['orderId'],
+                        'subtitle' => 'Status: ' . ($o['orderStatus'] ?? 'PENDING'),
+                        'url' => '/admin/orders?q=' . urlencode($o['orderId'])
+                    ];
+                }
+            }
+        }
+
+        // Limit results to 10
+        $results = array_slice($results, 0, 10);
+
+        return $this->response->setJSON($results);
     }
 }

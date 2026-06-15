@@ -8,7 +8,10 @@ $routes->get('/login', 'Auth::login');
 $routes->post('/auth/loginProcess', 'Auth::loginProcess');
 $routes->get('/logout', 'Auth::logout');
 
+$routes->get('/admin', 'Admin::index');
 $routes->get('/admin/dashboard', 'Admin::index');
+$routes->get('/admin/dashboard/exportCsv', 'Admin::exportCsv');
+$routes->get('/admin/dashboard/printReport', 'Admin::printReport');
 $routes->get('/admin/orders', 'Admin::orders');
 $routes->get('/admin/products', 'Admin::products');
 $routes->get('/admin/users', 'Admin::users');
@@ -18,6 +21,7 @@ $routes->get('/admin/reviews', 'Admin::reviews');
 $routes->get('/admin/profile', 'Admin::profile');
 $routes->get('/admin/settings', 'Admin::settings');
 $routes->get('/admin/notifications', 'Admin::notifications');
+$routes->get('/admin/search', 'Admin::globalSearch');
 
 // Action Routes
 $routes->post('/admin/products/save', 'Admin::saveProduct');

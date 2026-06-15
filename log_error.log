@@ -1,0 +1,39 @@
+[INFO] -------------------------------------------------------------
+[ERROR] COMPILATION ERROR : 
+[INFO] -------------------------------------------------------------
+[ERROR] /D:/FATHUR/Documents/Perkuliahan/Kelas CCIT/Semester 4/Phase 2/Capstone Project/ogani-fullstack-capstone/backend-api/src/main/java/com/ogani/api/controller/UserController.java:[53,45] no suitable method found for success(com.ogani.api.model.User,java.lang.String)
+    method com.ogani.api.dto.response.ApiResponse.<T>success(java.lang.String,T) is not applicable
+      (cannot infer type-variable(s) T
+        (argument mismatch; com.ogani.api.model.User cannot be converted to java.lang.String))
+    method com.ogani.api.dto.response.ApiResponse.<T>success(T) is not applicable
+      (cannot infer type-variable(s) T
+        (actual and formal argument lists differ in length))
+[ERROR] /D:/FATHUR/Documents/Perkuliahan/Kelas CCIT/Semester 4/Phase 2/Capstone Project/ogani-fullstack-capstone/backend-api/src/main/java/com/ogani/api/controller/UserController.java:[59,33] incompatible types: inference variable T has incompatible bounds
+    equality constraints: java.lang.Void
+    lower bounds: java.lang.String
+[INFO] 2 errors 
+[INFO] -------------------------------------------------------------
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  16.299 s
+[INFO] Finished at: 2026-06-15T16:51:47+07:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.15.0:compile (default-compile) on project api: Compilation failure: Compilation failure: 
+[ERROR] /D:/FATHUR/Documents/Perkuliahan/Kelas CCIT/Semester 4/Phase 2/Capstone Project/ogani-fullstack-capstone/backend-api/src/main/java/com/ogani/api/controller/UserController.java:[53,45] no suitable method found for success(com.ogani.api.model.User,java.lang.String)
+[ERROR]     method com.ogani.api.dto.response.ApiResponse.<T>success(java.lang.String,T) is not applicable
+[ERROR]       (cannot infer type-variable(s) T
+[ERROR]         (argument mismatch; com.ogani.api.model.User cannot be converted to java.lang.String))
+[ERROR]     method com.ogani.api.dto.response.ApiResponse.<T>success(T) is not applicable
+[ERROR]       (cannot infer type-variable(s) T
+[ERROR]         (actual and formal argument lists differ in length))
+[ERROR] /D:/FATHUR/Documents/Perkuliahan/Kelas CCIT/Semester 4/Phase 2/Capstone Project/ogani-fullstack-capstone/backend-api/src/main/java/com/ogani/api/controller/UserController.java:[59,33] incompatible types: inference variable T has incompatible bounds
+[ERROR]     equality constraints: java.lang.Void
+[ERROR]     lower bounds: java.lang.String
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
