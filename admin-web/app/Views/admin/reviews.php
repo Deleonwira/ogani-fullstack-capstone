@@ -25,9 +25,9 @@
                     <td class="py-4 px-6 font-title-md"><?= esc($r['product']['productName'] ?? 'Unknown Product') ?></td>
                     <td class="py-4 px-6"><?= esc($r['user']['fullName'] ?? $r['user']['username'] ?? 'Unknown User') ?></td>
                     <td class="py-4 px-6 font-bold text-tertiary">⭐ <?= esc($r['rating'] ?? 0) ?></td>
-                    <td class="py-4 px-6 max-w-xs truncate"><?= esc($r['comment'] ?? '') ?></td>
+                    <td class="py-4 px-6 max-w-xs truncate"><?= esc($r['content'] ?? '') ?></td>
                     <td class="py-4 px-6 text-right">
-                        <button class="text-error hover:bg-error-container/10 p-2 rounded-full"><span class="material-symbols-outlined">delete</span></button>
+                        <a href="<?= base_url('admin/reviews/delete/' . esc($r['reviewId'])) ?>" onclick="return confirm('Delete this review?')" class="text-error hover:bg-error-container/10 p-2 rounded-full"><span class="material-symbols-outlined">delete</span></a>
                     </td>
                 </tr>
             <?php endforeach; ?>

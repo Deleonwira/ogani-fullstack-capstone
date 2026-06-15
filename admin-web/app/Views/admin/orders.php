@@ -26,7 +26,7 @@
 <div class="bg-surface-container-lowest rounded-xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-outline-variant/40 flex items-center justify-between group hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] transition-shadow">
 <div>
 <p class="font-label-md text-label-md text-on-surface-variant mb-1 uppercase tracking-wider">Total Orders</p>
-<p class="font-display-lg text-display-lg text-on-background">1,284</p>
+<p class="font-display-lg text-display-lg text-on-background"><?= number_format($stats['totalOrders'] ?? 0, 0, ',', '.') ?></p>
 <p class="font-label-sm text-label-sm text-primary flex items-center gap-1 mt-1">
 <span class="material-symbols-outlined text-[14px]">trending_up</span> +12% this week
                             </p>
@@ -39,7 +39,7 @@
 <div class="bg-surface-container-lowest rounded-xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-outline-variant/40 flex items-center justify-between group hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] transition-shadow">
 <div>
 <p class="font-label-md text-label-md text-on-surface-variant mb-1 uppercase tracking-wider">Pending</p>
-<p class="font-display-lg text-display-lg text-on-background">42</p>
+<p class="font-display-lg text-display-lg text-on-background"><?= number_format($stats['pendingOrders'] ?? 0, 0, ',', '.') ?></p>
 <p class="font-label-sm text-label-sm text-tertiary flex items-center gap-1 mt-1">Needs attention</p>
 </div>
 <div class="w-12 h-12 rounded-full bg-tertiary-fixed/30 flex items-center justify-center text-tertiary group-hover:scale-110 transition-transform">
@@ -50,7 +50,7 @@
 <div class="bg-surface-container-lowest rounded-xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-outline-variant/40 flex items-center justify-between group hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] transition-shadow">
 <div>
 <p class="font-label-md text-label-md text-on-surface-variant mb-1 uppercase tracking-wider">Revenue Today</p>
-<p class="font-display-lg text-display-lg text-on-background">$8,450</p>
+<p class="font-display-lg text-display-lg text-on-background">Rp <?= number_format($stats['revenueToday'] ?? 0, 0, ',', '.') ?></p>
 <p class="font-label-sm text-label-sm text-primary flex items-center gap-1 mt-1">
 <span class="material-symbols-outlined text-[14px]">trending_up</span> +5.2% vs yesterday
                             </p>
@@ -121,7 +121,7 @@
                 <div class="text-label-sm"><?= esc(date('h:i A', strtotime($o['orderTime'] ?? 'now'))) ?></div>
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-on-surface-variant">- items</td>
-            <td class="px-6 py-4 whitespace-nowrap font-medium text-right">$<?= number_format($o['totalPrice'] ?? 0, 2) ?></td>
+            <td class="px-6 py-4 whitespace-nowrap font-medium text-right">Rp <?= number_format($o['totalPrice'] ?? 0, 0, ',', '.') ?></td>
             <td class="px-6 py-4 whitespace-nowrap">
                 <div class="flex items-center gap-1.5 text-primary">
                     <span class="material-symbols-outlined text-[16px]">check_circle</span>
@@ -134,7 +134,8 @@
                 </span>
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-right">
-                <button class="px-3 py-1.5 text-primary hover:bg-primary/10 rounded-lg font-label-md text-label-md transition-colors border border-transparent hover:border-primary/20">View Details</button>
+                <button onclick="openStatusModal('<?= esc($o['orderId']) ?>', '<?= esc($o['orderStatus'] ?? 'PENDING') ?>')" class="px-3 py-1.5 bg-primary/10 text-primary hover:bg-primary/20 rounded-lg font-label-md text-label-md transition-colors border border-transparent">Update Status</button>
+                <button class="px-3 py-1.5 text-on-surface hover:bg-surface-container-low rounded-lg font-label-md text-label-md transition-colors border border-transparent">Details</button>
             </td>
         </tr>
     <?php endforeach; ?>
@@ -163,4 +164,40 @@
 </div>
 </div>
 </div>
+</div>
+</div>
+
+<!-- Status Modal -->
+<div id="statusModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+    <div class="bg-surface rounded-xl shadow-lg w-full max-w-sm p-6">
+        <h3 class="text-title-lg font-title-lg mb-4 text-on-surface">Update Order Status</h3>
+        <form id="statusForm" action="" method="POST">
+            <div class="mb-4">
+                <label class="block text-label-md mb-1 text-on-surface-variant">Status</label>
+                <select name="orderStatus" id="orderStatus" class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg p-2 text-on-surface focus:border-primary outline-none" required>
+                    <option value="PENDING">PENDING</option>
+                    <option value="PROCESSING">PROCESSING</option>
+                    <option value="SHIPPED">SHIPPED</option>
+                    <option value="DELIVERED">DELIVERED</option>
+                    <option value="CANCELED">CANCELED</option>
+                </select>
+            </div>
+            <div class="flex justify-end gap-3 mt-6">
+                <button type="button" onclick="closeStatusModal()" class="px-4 py-2 border border-outline-variant rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-colors font-label-md">Cancel</button>
+                <button type="submit" class="px-4 py-2 bg-primary text-on-primary rounded-lg shadow-sm hover:shadow transition-shadow font-label-md">Update</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openStatusModal(id, currentStatus) {
+    document.getElementById('orderStatus').value = currentStatus.toUpperCase();
+    document.getElementById('statusForm').action = '<?= base_url('admin/orders/status/') ?>' + id;
+    document.getElementById('statusModal').classList.remove('hidden');
+}
+function closeStatusModal() {
+    document.getElementById('statusModal').classList.add('hidden');
+}
+</script>
 <?= $this->endSection() ?>

@@ -11,4 +11,5 @@ import java.util.Optional;
 public interface OrderRepository extends JpaRepository<Order, Integer> {
     List<Order> findByUserUserIdOrderByOrderTimeDesc(Integer userId);
     Optional<Order> findByInvoiceCode(String invoiceCode);
+    List<Order> findTop5ByOrderByOrderTimeDesc();
 }

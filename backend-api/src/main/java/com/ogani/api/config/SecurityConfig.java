@@ -44,8 +44,11 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/products/**").permitAll()
                 .requestMatchers("/api/categories/**").permitAll()
-                .requestMatchers("/api/reviews/product/**").permitAll()
+                .requestMatchers("/api/reviews/**").permitAll()
                 .requestMatchers("/api/promos/**").permitAll()
+                .requestMatchers("/api/orders/**").permitAll()
+                .requestMatchers("/api/dashboard/**").permitAll()
+                .requestMatchers("/api/users/**").permitAll()
                 .requestMatchers("/error").permitAll()
                 .anyRequest().authenticated()
             );

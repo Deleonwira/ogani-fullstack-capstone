@@ -1,5 +1,6 @@
 package com.ogani.api.service;
 
+import com.ogani.api.exception.ResourceNotFoundException;
 import com.ogani.api.model.Review;
 import com.ogani.api.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
@@ -14,5 +15,15 @@ public class ReviewService {
 
     public List<Review> getAllReviews() {
         return reviewRepository.findAll();
+    }
+
+    public Review getReviewById(Integer id) {
+        return reviewRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Review not found with id: " + id));
+    }
+
+    public void deleteReview(Integer id) {
+        Review review = getReviewById(id);
+        reviewRepository.delete(review);
     }
 }

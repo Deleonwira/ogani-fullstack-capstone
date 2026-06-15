@@ -33,7 +33,7 @@
 </div>
 <div>
 <p class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Total Revenue</p>
-<h3 class="font-headline-lg text-headline-lg text-on-surface">$<?= number_format($stats['revenueToday'] ?? 0, 2) ?></h3>
+<h3 class="font-headline-lg text-headline-lg text-on-surface">Rp <?= number_format($stats['revenueToday'] ?? 0, 0, ',', '.') ?></h3>
 </div>
 </div>
 <!-- Metric 2 -->
@@ -64,7 +64,7 @@
 </div>
 <div>
 <p class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mb-1">Total Products</p>
-<h3 class="font-headline-lg text-headline-lg text-on-surface"><?= number_format($stats['totalProducts'] ?? 0) ?></h3>
+<h3 class="font-headline-lg text-headline-lg text-on-surface"><?= number_format($stats['totalProducts'] ?? 0, 0, ',', '.') ?></h3>
 </div>
 </div>
 </div>
@@ -103,92 +103,78 @@
 </tr>
 </thead>
 <tbody class="divide-y divide-outline-variant/30">
-<tr class="hover:bg-surface-container-lowest transition-colors group">
-<td class="py-4 px-6 font-body-md text-body-md text-on-surface font-medium">#ORD-001</td>
-<td class="py-4 px-6 font-body-md text-body-md text-on-surface">
-<div class="flex items-center gap-3">
-<div class="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center text-xs font-bold text-on-surface">JD</div>
-                                    John Doe
-                                </div>
-</td>
-<td class="py-4 px-6 font-body-md text-body-md text-on-surface-variant">Oct 24, 2023</td>
-<td class="py-4 px-6 font-body-md text-body-md text-on-surface font-medium">$124.50</td>
-<td class="py-4 px-6">
-<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-tertiary-container/10 text-tertiary">
-                                    Pending
-                                </span>
-</td>
-<td class="py-4 px-6 text-right">
-<button class="text-on-surface-variant hover:text-primary transition-colors opacity-0 group-hover:opacity-100">
-<span class="material-symbols-outlined text-[20px]">more_vert</span>
-</button>
-</td>
-</tr>
-<tr class="hover:bg-surface-container-lowest transition-colors group">
-<td class="py-4 px-6 font-body-md text-body-md text-on-surface font-medium">#ORD-002</td>
-<td class="py-4 px-6 font-body-md text-body-md text-on-surface">
-<div class="flex items-center gap-3">
-<div class="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center text-xs font-bold text-on-surface">AS</div>
-                                    Alice Smith
-                                </div>
-</td>
-<td class="py-4 px-6 font-body-md text-body-md text-on-surface-variant">Oct 24, 2023</td>
-<td class="py-4 px-6 font-body-md text-body-md text-on-surface font-medium">$89.00</td>
-<td class="py-4 px-6">
-<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-surface-variant text-on-surface-variant">
-                                    Shipped
-                                </span>
-</td>
-<td class="py-4 px-6 text-right">
-<button class="text-on-surface-variant hover:text-primary transition-colors opacity-0 group-hover:opacity-100">
-<span class="material-symbols-outlined text-[20px]">more_vert</span>
-</button>
-</td>
-</tr>
-<tr class="hover:bg-surface-container-lowest transition-colors group">
-<td class="py-4 px-6 font-body-md text-body-md text-on-surface font-medium">#ORD-003</td>
-<td class="py-4 px-6 font-body-md text-body-md text-on-surface">
-<div class="flex items-center gap-3">
-<div class="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center text-xs font-bold text-on-surface">MJ</div>
-                                    Michael Johnson
-                                </div>
-</td>
-<td class="py-4 px-6 font-body-md text-body-md text-on-surface-variant">Oct 23, 2023</td>
-<td class="py-4 px-6 font-body-md text-body-md text-on-surface font-medium">$210.75</td>
-<td class="py-4 px-6">
-<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary-container/20 text-secondary">
-                                    Delivered
-                                </span>
-</td>
-<td class="py-4 px-6 text-right">
-<button class="text-on-surface-variant hover:text-primary transition-colors opacity-0 group-hover:opacity-100">
-<span class="material-symbols-outlined text-[20px]">more_vert</span>
-</button>
-</td>
-</tr>
-<tr class="hover:bg-surface-container-lowest transition-colors group">
-<td class="py-4 px-6 font-body-md text-body-md text-on-surface font-medium">#ORD-004</td>
-<td class="py-4 px-6 font-body-md text-body-md text-on-surface">
-<div class="flex items-center gap-3">
-<div class="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center text-xs font-bold text-on-surface">EW</div>
-                                    Emma Wilson
-                                </div>
-</td>
-<td class="py-4 px-6 font-body-md text-body-md text-on-surface-variant">Oct 23, 2023</td>
-<td class="py-4 px-6 font-body-md text-body-md text-on-surface font-medium">$45.20</td>
-<td class="py-4 px-6">
-<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary-container/20 text-secondary">
-                                    Delivered
-                                </span>
-</td>
-<td class="py-4 px-6 text-right">
-<button class="text-on-surface-variant hover:text-primary transition-colors opacity-0 group-hover:opacity-100">
-<span class="material-symbols-outlined text-[20px]">more_vert</span>
-</button>
-</td>
-</tr>
+<?php if (isset($stats['recentOrders']) && !empty($stats['recentOrders'])): ?>
+    <?php foreach ($stats['recentOrders'] as $order): ?>
+    <tr class="hover:bg-surface-container-lowest transition-colors group">
+        <td class="py-4 px-6 font-body-md text-body-md text-on-surface font-medium"><?= htmlspecialchars($order['invoiceCode'] ?? '#ORD-'.$order['orderId']) ?></td>
+        <td class="py-4 px-6 font-body-md text-body-md text-on-surface">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center text-xs font-bold text-on-surface uppercase">
+                    <?= substr($order['user']['fullName'] ?? 'U', 0, 2) ?>
+                </div>
+                <?= htmlspecialchars($order['user']['fullName'] ?? 'Unknown User') ?>
+            </div>
+        </td>
+        <td class="py-4 px-6 font-body-md text-body-md text-on-surface-variant">
+            <?= date('M d, Y', strtotime($order['orderTime'])) ?>
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap font-medium text-right">Rp <?= number_format($order['totalPrice'] ?? 0, 0, ',', '.') ?></td>
+        <td class="py-4 px-6">
+            <?php 
+                $statusClass = 'bg-surface-variant text-on-surface-variant';
+                if (($order['orderStatus'] ?? '') == 'pending') $statusClass = 'bg-tertiary-container/10 text-tertiary';
+                if (($order['orderStatus'] ?? '') == 'completed' || ($order['orderStatus'] ?? '') == 'shipped') $statusClass = 'bg-primary-container/20 text-secondary';
+            ?>
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold <?= $statusClass ?> capitalize">
+                <?= htmlspecialchars($order['orderStatus'] ?? 'pending') ?>
+            </span>
+        </td>
+        <td class="py-4 px-6 text-right">
+            <button class="text-on-surface-variant hover:text-primary transition-colors opacity-0 group-hover:opacity-100">
+                <span class="material-symbols-outlined text-[20px]">more_vert</span>
+            </button>
+        </td>
+    </tr>
+    <?php endforeach; ?>
+<?php else: ?>
+    <tr><td colspan="6" class="py-4 px-6 text-center text-on-surface-variant">No recent orders found.</td></tr>
+<?php endif; ?>
 </tbody>
 </table>
 </div>
 </div>
+
+<?php
+$chartLabels = isset($stats['chartData']['labels']) ? json_encode($stats['chartData']['labels']) : '[]';
+$chartData = isset($stats['chartData']['data']) ? json_encode($stats['chartData']['data']) : '[]';
+?>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const ctx = document.getElementById('salesChart');
+    if (ctx) {
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: <?= $chartLabels ?>,
+                datasets: [{
+                    label: 'Revenue',
+                    data: <?= $chartData ?>,
+                    borderColor: '#4BAE4F',
+                    backgroundColor: 'rgba(75, 174, 79, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+    }
+});
+</script>
 <?= $this->endSection() ?>

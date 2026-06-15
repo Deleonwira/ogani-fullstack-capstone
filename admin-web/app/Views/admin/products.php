@@ -7,7 +7,7 @@
 <h2 class="font-headline-lg text-headline-lg text-on-surface">Product Inventory</h2>
 <p class="font-body-md text-body-md text-on-surface-variant mt-1">Manage your catalog, stock levels, and pricing.</p>
 </div>
-<button class="bg-[#4CAF50] hover:bg-primary text-on-primary px-6 py-2.5 rounded-lg flex items-center gap-2 font-title-md text-title-md transition-colors shadow-sm">
+<button onclick="openModal()" class="bg-[#4CAF50] hover:bg-primary text-on-primary px-6 py-2.5 rounded-lg flex items-center gap-2 font-title-md text-title-md transition-colors shadow-sm">
 <span class="material-symbols-outlined" style="font-size: 20px;">add</span>
                 Add New Product
             </button>
@@ -57,19 +57,23 @@
     <?php foreach ($products as $p): ?>
         <tr class="table-row-hover group transition-colors">
             <td class="py-4 px-6 flex items-center gap-4">
-                <div class="w-12 h-12 rounded-lg bg-surface-variant flex items-center justify-center text-on-surface-variant">
-                    <span class="material-symbols-outlined">image</span>
-                </div>
+                <?php if(!empty($p['productImage'])): ?>
+                    <img src="<?= esc($p['productImage']) ?>" alt="<?= esc($p['productName']) ?>" class="w-12 h-12 rounded-lg object-cover bg-surface-variant">
+                <?php else: ?>
+                    <div class="w-12 h-12 rounded-lg bg-surface-variant flex items-center justify-center text-on-surface-variant">
+                        <span class="material-symbols-outlined">image</span>
+                    </div>
+                <?php endif; ?>
                 <div>
                     <p class="font-title-md text-title-md text-on-surface"><?= esc($p['productName'] ?? 'Unknown') ?></p>
                     <p class="font-label-sm text-label-sm text-outline">ID: <?= esc($p['productId'] ?? '') ?></p>
                 </div>
             </td>
             <td class="py-4 px-6 font-body-md text-body-md text-on-surface-variant"><?= esc($p['category']['categoryName'] ?? 'Uncategorized') ?></td>
-            <td class="py-4 px-6 font-body-md text-body-md text-on-surface font-medium">$<?= number_format($p['price'] ?? 0, 2) ?></td>
-            <td class="py-4 px-6 font-body-md text-body-md text-on-surface"><?= esc($p['stockQuantity'] ?? 0) ?></td>
+            <td class="py-4 px-6 font-body-md text-body-md text-on-surface font-medium">Rp <?= number_format($p['price'] ?? 0, 0, ',', '.') ?></td>
+            <td class="py-4 px-6 font-body-md text-body-md text-on-surface"><?= esc($p['stock'] ?? 0) ?></td>
             <td class="py-4 px-6">
-                <?php if (($p['stockQuantity'] ?? 0) > 0): ?>
+                <?php if (($p['stock'] ?? 0) > 0): ?>
                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full font-label-sm text-label-sm bg-primary-container/10 text-primary">In Stock</span>
                 <?php else: ?>
                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full font-label-sm text-label-sm bg-error-container text-on-error-container">Out of Stock</span>
@@ -77,12 +81,12 @@
             </td>
             <td class="py-4 px-6 text-right">
                 <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button aria-label="Edit" class="text-on-surface-variant hover:text-primary p-1 rounded transition-colors">
+                    <button onclick="openModal('<?= esc($p['productId']) ?>', '<?= esc($p['productName']) ?>', '<?= esc($p['price']) ?>', '<?= esc($p['stock']) ?>', '<?= esc($p['category']['categoryId'] ?? '') ?>', '<?= esc($p['productImage'] ?? '') ?>')" aria-label="Edit" class="text-on-surface-variant hover:text-primary p-1 rounded transition-colors">
                         <span class="material-symbols-outlined" style="font-size: 20px;">edit</span>
                     </button>
-                    <button aria-label="Delete" class="text-on-surface-variant hover:text-error p-1 rounded transition-colors">
+                    <a href="<?= base_url('admin/products/delete/' . esc($p['productId'])) ?>" onclick="return confirm('Delete this product?')" aria-label="Delete" class="text-on-surface-variant hover:text-error p-1 rounded transition-colors">
                         <span class="material-symbols-outlined" style="font-size: 20px;">delete</span>
-                    </button>
+                    </a>
                 </div>
             </td>
         </tr>
@@ -113,4 +117,61 @@
 </div>
 </div>
 </div>
+
+<!-- Modal -->
+<div id="productModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center overflow-y-auto">
+    <div class="bg-surface rounded-xl shadow-lg w-full max-w-2xl p-6 m-4 mt-20">
+        <h3 id="modalTitle" class="text-title-lg font-title-lg mb-4 text-on-surface">Add Product</h3>
+        <form action="<?= base_url('admin/products/save') ?>" method="POST">
+            <input type="hidden" name="id" id="productId">
+            <div class="grid grid-cols-2 gap-4">
+                <div class="mb-4 col-span-2">
+                    <label class="block text-label-md mb-1 text-on-surface-variant">Product Name</label>
+                    <input type="text" name="productName" id="productName" class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg p-2 text-on-surface focus:border-primary outline-none" required>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-label-md mb-1 text-on-surface-variant">Price (Rp)</label>
+                    <input type="number" name="price" id="price" class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg p-2 text-on-surface focus:border-primary outline-none" required>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-label-md mb-1 text-on-surface-variant">Stock</label>
+                    <input type="number" name="stock" id="stock" class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg p-2 text-on-surface focus:border-primary outline-none" required>
+                </div>
+                <div class="mb-4 col-span-2">
+                    <label class="block text-label-md mb-1 text-on-surface-variant">Category</label>
+                    <select name="categoryId" id="categoryId" class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg p-2 text-on-surface focus:border-primary outline-none" required>
+                        <option value="">Select Category</option>
+                        <?php if(!empty($categories)): foreach($categories as $c): ?>
+                            <option value="<?= esc($c['categoryId']) ?>"><?= esc($c['categoryName']) ?></option>
+                        <?php endforeach; endif; ?>
+                    </select>
+                </div>
+                <div class="mb-4 col-span-2">
+                    <label class="block text-label-md mb-1 text-on-surface-variant">Image URL</label>
+                    <input type="text" name="productImage" id="productImage" class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg p-2 text-on-surface focus:border-primary outline-none">
+                </div>
+            </div>
+            <div class="flex justify-end gap-3 mt-6">
+                <button type="button" onclick="closeModal()" class="px-4 py-2 border border-outline-variant rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-colors font-label-md">Cancel</button>
+                <button type="submit" class="px-4 py-2 bg-primary text-on-primary rounded-lg shadow-sm hover:shadow transition-shadow font-label-md">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openModal(id = '', name = '', price = '', stock = '', categoryId = '', image = '') {
+    document.getElementById('productId').value = id;
+    document.getElementById('productName').value = name;
+    document.getElementById('price').value = price;
+    document.getElementById('stock').value = stock;
+    document.getElementById('categoryId').value = categoryId;
+    document.getElementById('productImage').value = image;
+    document.getElementById('modalTitle').innerText = id ? 'Edit Product' : 'Add Product';
+    document.getElementById('productModal').classList.remove('hidden');
+}
+function closeModal() {
+    document.getElementById('productModal').classList.add('hidden');
+}
+</script>
 <?= $this->endSection() ?>

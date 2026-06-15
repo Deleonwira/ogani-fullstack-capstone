@@ -30,4 +30,29 @@ public class ProductService {
     public List<Product> searchProducts(String keyword) {
         return productRepository.findByProductNameContainingIgnoreCase(keyword);
     }
+
+    public Product createProduct(Product product) {
+        return productRepository.save(product);
+    }
+
+    public Product updateProduct(Integer id, Product productDetails) {
+        Product product = getProductById(id);
+        product.setProductName(productDetails.getProductName());
+        product.setDescription(productDetails.getDescription());
+        product.setPrice(productDetails.getPrice());
+        product.setUnit(productDetails.getUnit());
+        product.setWeightPerUnit(productDetails.getWeightPerUnit());
+        product.setProductStatus(productDetails.getProductStatus());
+        product.setStock(productDetails.getStock());
+        product.setProductImage(productDetails.getProductImage());
+        if (productDetails.getCategory() != null) {
+            product.setCategory(productDetails.getCategory());
+        }
+        return productRepository.save(product);
+    }
+
+    public void deleteProduct(Integer id) {
+        Product product = getProductById(id);
+        productRepository.delete(product);
+    }
 }

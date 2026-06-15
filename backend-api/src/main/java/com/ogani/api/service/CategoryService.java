@@ -22,4 +22,20 @@ public class CategoryService {
         return categoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + id));
     }
+
+    public Category createCategory(Category category) {
+        return categoryRepository.save(category);
+    }
+
+    public Category updateCategory(Integer id, Category categoryDetails) {
+        Category category = getCategoryById(id);
+        category.setCategoryName(categoryDetails.getCategoryName());
+        category.setImage(categoryDetails.getImage());
+        return categoryRepository.save(category);
+    }
+
+    public void deleteCategory(Integer id) {
+        Category category = getCategoryById(id);
+        categoryRepository.delete(category);
+    }
 }

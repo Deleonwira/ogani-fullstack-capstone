@@ -199,7 +199,7 @@ $active_page = $active_page ?? 'dashboard';
 </ul>
 <!-- Footer Actions -->
 <div class="mt-auto pt-4 border-t border-outline-variant/30">
-<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-error hover:bg-error-container/20 transition-colors rounded-lg" href="#">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-error hover:bg-error-container/20 transition-colors rounded-lg" href="/logout">
 <span class="material-symbols-outlined text-[20px]" data-icon="logout">logout</span>
 <span class="font-label-md text-label-md">Logout</span>
 </a>
@@ -225,7 +225,7 @@ $active_page = $active_page ?? 'dashboard';
 <div class="h-8 w-px bg-outline-variant mx-1"></div>
 <button class="flex items-center gap-2 p-1 pl-2 pr-4 hover:bg-surface-container-low rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20 border border-transparent hover:border-outline-variant/50">
 <img alt="Admin Avatar" class="w-8 h-8 rounded-full border border-outline-variant/20 shadow-sm" data-alt="A clean, professional headshot avatar of an administrator or professional user. The avatar is set against a solid, subtle organic green background (#006e1c) with white stylized initials. The lighting is soft and flat, perfect for a digital UI profile image. The image embodies trust, efficiency, and a modern corporate identity suitable for an enterprise dashboard." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC-IjZFOb4GkfGOOqthIQzAi82--oIukR6oKBe5XX5D8H4E3DF2J63j5akRvVcX5WxA6kLzyiwypP5Fa3ajLiW6MMbepzK2vzo9h-xylwqCg2lfYrUclHlR8lB73TCELeA7i6GzcDfi8ZfxpE8kry1PmdTBG6ofPEpTv0NdSfOLMPaZBb3TGrItnBf13YwJo-JHj_P1XnK_dU6y5STP3XvwHC85a7mGFfzBXXZh7-E95SmsWZ2p_CFMQD6i5r5JGVHI8GP46EDjKNFo"/>
-<span class="font-label-md text-label-md text-on-surface hidden md:block">Admin</span>
+<span class="font-label-md text-label-md text-on-surface hidden md:block"><?= esc(session()->get('fullName') ?? 'Admin') ?></span>
 <span class="material-symbols-outlined text-on-surface-variant text-[18px]">expand_more</span>
 </button>
 </div>
