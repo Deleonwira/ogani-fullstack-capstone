@@ -21,6 +21,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
+    private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<User>>> getAllUsers() {
@@ -44,5 +45,17 @@ public class UserController {
     public ResponseEntity<ApiResponse<Void>> deleteUser(@PathVariable Integer id) {
         userService.deleteUser(id);
         return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<User>> updateProfile(@PathVariable Integer id, @RequestBody com.ogani.api.dto.request.UserUpdateRequest request) {
+        User updatedUser = userService.updateProfile(id, request);
+        return ResponseEntity.ok(ApiResponse.success(updatedUser, "Profil berhasil diperbarui"));
+    }
+
+    @PutMapping("/{id}/password")
+    public ResponseEntity<ApiResponse<Void>> updatePassword(@PathVariable Integer id, @RequestBody com.ogani.api.dto.request.PasswordUpdateRequest request) {
+        userService.updatePassword(id, request, passwordEncoder);
+        return ResponseEntity.ok(ApiResponse.success(null, "Password updated successfully"));
     }
 }

@@ -95,6 +95,33 @@ class Admin extends BaseController
         return view('admin/reviews', ['active_page' => 'reviews', 'reviews' => $reviews]);
     }
 
+    public function profile()
+    {
+        $userId = session()->get('userId');
+        $user = $this->fetchApi('users/' . $userId);
+        if (empty($user)) {
+            $user = [
+                'userId' => session()->get('userId'),
+                'fullName' => session()->get('fullName'),
+                'email' => session()->get('email'),
+                'role' => session()->get('role')
+            ];
+        }
+        return view('admin/profile', ['active_page' => 'profile', 'user' => $user]);
+    }
+
+    public function settings()
+    {
+        $settings = $this->fetchApi('settings');
+        return view('admin/settings', ['active_page' => 'settings', 'settings' => $settings]);
+    }
+
+    public function notifications()
+    {
+        $notifications = $this->fetchApi('notifications');
+        return view('admin/notifications', ['active_page' => 'notifications', 'notifications' => $notifications]);
+    }
+
     public function saveProduct()
     {
         $id = $this->request->getPost('id');
@@ -196,5 +223,81 @@ class Admin extends BaseController
         $status = $this->request->getPost('orderStatus');
         $this->putApi('orders/' . $id . '/status', ['orderStatus' => $status]);
         return redirect()->to('/admin/orders');
+    }
+
+    public function updatePassword()
+    {
+        $userId = session()->get('userId');
+        
+        if (!$userId) {
+            return $this->response->setStatusCode(401)->setJSON(['success' => false, 'message' => 'Unauthorized']);
+        }
+
+        $currentPassword = $this->request->getJsonVar('currentPassword');
+        $newPassword = $this->request->getJsonVar('newPassword');
+
+        $data = [
+            'currentPassword' => $currentPassword,
+            'newPassword' => $newPassword
+        ];
+
+        try {
+            $client = \Config\Services::curlrequest();
+            $response = $client->request('PUT', 'http://localhost:8080/api/users/' . $userId . '/password', [
+                'json' => $data,
+                'http_errors' => false
+            ]);
+            $respData = json_decode($response->getBody(), true);
+
+            if ($response->getStatusCode() === 200) {
+                return $this->response->setJSON(['success' => true]);
+            } else {
+                return $this->response->setStatusCode($response->getStatusCode())
+                    ->setJSON(['success' => false, 'message' => $respData['message'] ?? 'Gagal memperbarui sandi']);
+            }
+        } catch (\Exception $e) {
+            return $this->response->setStatusCode(500)->setJSON(['success' => false, 'message' => 'Terjadi kesalahan koneksi']);
+        }
+    }
+
+    public function updateProfile()
+    {
+        $userId = session()->get('userId');
+        
+        if (!$userId) {
+            return $this->response->setStatusCode(401)->setJSON(['success' => false, 'message' => 'Unauthorized']);
+        }
+
+        $data = [
+            'username' => $this->request->getJsonVar('username'),
+            'email' => $this->request->getJsonVar('email'),
+            'fullName' => $this->request->getJsonVar('fullName'),
+            'phoneNumber' => $this->request->getJsonVar('phoneNumber'),
+            'birthDate' => $this->request->getJsonVar('birthDate'),
+            'address' => $this->request->getJsonVar('address')
+        ];
+
+        try {
+            $client = \Config\Services::curlrequest();
+            $response = $client->request('PUT', 'http://localhost:8080/api/users/' . $userId, [
+                'json' => $data,
+                'http_errors' => false
+            ]);
+            $respData = json_decode($response->getBody(), true);
+
+            if ($response->getStatusCode() === 200) {
+                // Update session
+                if (isset($respData['data'])) {
+                    session()->set('fullName', $respData['data']['fullName']);
+                    session()->set('email', $respData['data']['email']);
+                }
+                return $this->response->setJSON(['success' => true, 'data' => $respData['data'] ?? null]);
+            } else {
+                return $this->response->setStatusCode($response->getStatusCode())
+                    ->setJSON(['success' => false, 'message' => $respData['message'] ?? 'Gagal memperbarui profil']);
+            }
+        } catch (\Exception $e) {
+            return $this->response->setStatusCode(500)->setJSON(['success' => false, 'message' => 'Terjadi kesalahan koneksi']);
+        }
     }
 }

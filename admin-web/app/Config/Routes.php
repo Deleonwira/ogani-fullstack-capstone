@@ -15,6 +15,9 @@ $routes->get('/admin/users', 'Admin::users');
 $routes->get('/admin/categories', 'Admin::categories');
 $routes->get('/admin/promos', 'Admin::promos');
 $routes->get('/admin/reviews', 'Admin::reviews');
+$routes->get('/admin/profile', 'Admin::profile');
+$routes->get('/admin/settings', 'Admin::settings');
+$routes->get('/admin/notifications', 'Admin::notifications');
 
 // Action Routes
 $routes->post('/admin/products/save', 'Admin::saveProduct');
@@ -32,3 +35,5 @@ $routes->get('/admin/users/delete/(:num)', 'Admin::deleteUser/$1');
 $routes->post('/admin/users/role/(:num)', 'Admin::updateUserRole/$1');
 
 $routes->post('/admin/orders/status/(:num)', 'Admin::updateOrderStatus/$1');
+$routes->put('/admin/settings/password', 'Admin::updatePassword');
+$routes->put('/admin/profile/update', 'Admin::updateProfile');
