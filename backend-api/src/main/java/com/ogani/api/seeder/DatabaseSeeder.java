@@ -32,24 +32,7 @@ public class DatabaseSeeder implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) throws Exception {
-        // Force clean database if there are many users
-        if (userRepository.count() > 3) {
-            entityManager.createNativeQuery("SET FOREIGN_KEY_CHECKS = 0").executeUpdate();
-            String[] tables = {
-                "notifications", "reviews", "order_tracking", "order_details", "orders",
-                "cart", "wishlist", "user_addresses", "payment_methods", "product_images",
-                "products", "categories", "promos", "users"
-            };
-            for (String table : tables) {
-                try {
-                    entityManager.createNativeQuery("TRUNCATE TABLE " + table).executeUpdate();
-                } catch (Exception e) {
-                    System.out.println("Skipped truncating missing table: " + table);
-                }
-            }
-            entityManager.createNativeQuery("SET FOREIGN_KEY_CHECKS = 1").executeUpdate();
-        }
-
+        // Removed automatic truncation to prevent data loss on restart
         if (userRepository.count() == 0) seedUsers();
         if (categoryRepository.count() == 0) seedCategoriesAndProducts();
         if (promoRepository.count() == 0) seedPromos();
@@ -69,21 +52,21 @@ public class DatabaseSeeder implements CommandLineRunner {
     }
 
     private void seedCategoriesAndProducts() {
-        Category fruits = Category.builder().categoryName("Fresh Fruits").build();
-        Category vegetables = Category.builder().categoryName("Vegetables").build();
-        Category meats = Category.builder().categoryName("Fresh Meat").build();
+        Category fruits = Category.builder().categoryName("Fresh Fruits").image("https://images.pexels.com/photos/1132047/pexels-photo-1132047.jpeg?auto=compress&cs=tinysrgb&w=800").build();
+        Category vegetables = Category.builder().categoryName("Vegetables").image("https://images.pexels.com/photos/1414651/pexels-photo-1414651.jpeg?auto=compress&cs=tinysrgb&w=800").build();
+        Category meats = Category.builder().categoryName("Fresh Meat").image("https://images.pexels.com/photos/6187720/pexels-photo-6187720.jpeg?auto=compress&cs=tinysrgb&w=800").build();
         categoryRepository.saveAll(Arrays.asList(fruits, vegetables, meats));
 
-        Product p1 = Product.builder().productName("Fresh Apples").price(new BigDecimal("12.50")).category(fruits).stock(50).build();
-        Product p2 = Product.builder().productName("Bananas").price(new BigDecimal("5.00")).category(fruits).stock(100).build();
-        Product p3 = Product.builder().productName("Carrots").price(new BigDecimal("3.20")).category(vegetables).stock(80).build();
-        Product p4 = Product.builder().productName("Beef Steak").price(new BigDecimal("25.00")).category(meats).stock(20).build();
+        Product p1 = Product.builder().productName("Fresh Apples").price(new BigDecimal("45000.00")).category(fruits).stock(50).productImage("https://images.pexels.com/photos/205926/pexels-photo-205926.jpeg?auto=compress&cs=tinysrgb&w=800").build();
+        Product p2 = Product.builder().productName("Bananas").price(new BigDecimal("25000.00")).category(fruits).stock(100).productImage("https://images.pexels.com/photos/2872755/pexels-photo-2872755.jpeg?auto=compress&cs=tinysrgb&w=800").build();
+        Product p3 = Product.builder().productName("Carrots").price(new BigDecimal("15000.00")).category(vegetables).stock(80).productImage("https://images.pexels.com/photos/143133/pexels-photo-143133.jpeg?auto=compress&cs=tinysrgb&w=800").build();
+        Product p4 = Product.builder().productName("Beef Steak").price(new BigDecimal("150000.00")).category(meats).stock(20).productImage("https://images.pexels.com/photos/361184/asparagus-steak-veal-steak-veal-361184.jpeg?auto=compress&cs=tinysrgb&w=800").build();
         productRepository.saveAll(Arrays.asList(p1, p2, p3, p4));
     }
 
     private void seedPromos() {
-        Promo promo1 = Promo.builder().promoCode("WELCOME50").title("Welcome Discount").discountValue(new BigDecimal("50.00")).expirationDate(LocalDateTime.now().plusMonths(1)).build();
-        Promo promo2 = Promo.builder().promoCode("FRESH20").title("Fresh Produce Discount").discountValue(new BigDecimal("20.00")).expirationDate(LocalDateTime.now().plusDays(15)).build();
+        Promo promo1 = Promo.builder().promoCode("WELCOME50").title("Welcome Discount").discountValue(new BigDecimal("50000.00")).expirationDate(LocalDateTime.now().plusMonths(1)).build();
+        Promo promo2 = Promo.builder().promoCode("FRESH20").title("Fresh Produce Discount").discountValue(new BigDecimal("20000.00")).expirationDate(LocalDateTime.now().plusDays(15)).build();
         promoRepository.saveAll(Arrays.asList(promo1, promo2));
     }
 
@@ -110,7 +93,7 @@ public class DatabaseSeeder implements CommandLineRunner {
             Order order = Order.builder()
                     .invoiceCode("INV-" + (1000 + i))
                     .user(u)
-                    .totalPrice(new BigDecimal(50 + (i * 15)))
+                    .totalPrice(new BigDecimal(150000 + (i * 25000)))
                     .orderStatus(status)
                     .orderTime(orderTime)
                     .build();
