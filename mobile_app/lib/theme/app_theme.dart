@@ -9,11 +9,14 @@ class AppTheme {
   
   static const Color secondary = Color(0xFF9B4500);
   static const Color secondaryContainer = Color(0xFFFC8A40);
+  static const Color onSecondaryContainer = Color(0xFF516857);
   static const Color onSecondary = Color(0xFFFFFFFF);
 
-  static const Color surface = Color(0xFFF7F9FF);
+  static const Color surface = Color(0xFFFFFFFF);
+  static const Color surfaceBright = Color(0xFFFFFFFF);
+  static const Color surfaceVariant = Color(0xFFF0F4F8);
   static const Color surfaceContainerHighest = Color(0xFFE0E3E8);
-  static const Color surfaceContainerLow = Color(0xFFF1F4F9);
+  static const Color surfaceContainerLow = Color(0xFFFAFAFA);
   static const Color surfaceContainerLowest = Color(0xFFFFFFFF);
   static const Color onSurface = Color(0xFF181C20);
   static const Color onSurfaceVariant = Color(0xFF42493E);
@@ -21,6 +24,10 @@ class AppTheme {
   static const Color outline = Color(0xFF72796E);
   static const Color outlineVariant = Color(0xFFC2C9BB);
   
+  static const Color tertiary = Color(0xFF785900);
+  static const Color tertiaryContainer = Color(0xFFC49400);
+  static const Color tertiaryFixedDim = Color(0xFFFABD00);
+
   static const Color error = Color(0xFFBA1A1A);
 
   static ThemeData get lightTheme {
@@ -61,9 +68,26 @@ class AppTheme {
           backgroundColor: primary,
           foregroundColor: onPrimary,
           elevation: 0,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         ),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: const Color(0xFFFAFAFA),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: primary, width: 2),
+        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       ),
     );
   }

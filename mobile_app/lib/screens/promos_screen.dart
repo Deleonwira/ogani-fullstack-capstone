@@ -1,10 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/services.dart';
 import '../theme/app_theme.dart';
 
 class PromosScreen extends StatelessWidget {
   const PromosScreen({super.key});
+
+  void _copyToClipboard(BuildContext context, String code) {
+    Clipboard.setData(ClipboardData(text: code));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Code $code copied to clipboard!'),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,7 +66,7 @@ class PromosScreen extends StatelessWidget {
               // Standard Coupons
               _buildStandardCoupon(
                 context,
-                icon: CupertinoIcons.cup_hot_fill,
+                icon: Icons.local_cafe,
                 type: 'Daily Deals',
                 title: 'Buy 1 Get 1 Free',
                 desc: 'Artisan organic coffee beans. Select roasts only.',
@@ -89,8 +100,8 @@ class PromosScreen extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? AppTheme.primaryContainer.withOpacity(0.1) : AppTheme.surfaceContainerLowest,
-          border: Border.all(color: isSelected ? AppTheme.primaryContainer.withOpacity(0.5) : AppTheme.outlineVariant),
+          color: isSelected ? AppTheme.primaryContainer.withValues(alpha: 0.1) : AppTheme.surfaceContainerLowest,
+          border: Border.all(color: isSelected ? AppTheme.primaryContainer.withValues(alpha: 0.5) : AppTheme.outlineVariant),
           borderRadius: BorderRadius.circular(20),
         ),
         child: Text(
@@ -112,7 +123,7 @@ class PromosScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 24,
             offset: const Offset(0, 4),
           ),
@@ -126,7 +137,7 @@ class PromosScreen extends StatelessWidget {
               ClipRRect(
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
                 child: CachedNetworkImage(
-                  imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBbqzDTGryzDTUVrLwY9NJCcXVfAtLHUt6Yt2SV_yntK5Uj81NnkhiACZu_c8VhgFJKTjgd3Y-flF14jNXdaPc1BaL4cDJAtBAK6f2SJ1m37BlzL0jC4nG7lVnzXG2dTHcoq-2mxADX2ilHsXxmokgOR46i9j1tW-0JrQhoKx41c2wEF8jWLgFODcfI5YjoHGBlRnW-Tagohk2BC-8noc0whzjX7K6_uV8I4Zs1BgzlWdqWypBUgoCWDJ85PQbdyFGWDK3X1c7MP6c7',
+                  imageUrl: 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=600&h=200',
                   height: 180,
                   width: double.infinity,
                   fit: BoxFit.cover,
@@ -175,7 +186,7 @@ class PromosScreen extends StatelessWidget {
                       ],
                     ),
                     ElevatedButton.icon(
-                      onPressed: () {},
+                      onPressed: () => _copyToClipboard(context, 'FRESH20'),
                       icon: const Icon(CupertinoIcons.doc_on_clipboard, size: 16),
                       label: const Text('Copy'),
                     ),
@@ -206,7 +217,7 @@ class PromosScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 24,
             offset: const Offset(0, 4),
           ),
@@ -232,14 +243,20 @@ class PromosScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(code, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, letterSpacing: 2)),
-              IconButton(icon: const Icon(CupertinoIcons.doc_on_clipboard, color: AppTheme.primary), onPressed: () {}),
+              IconButton(
+                icon: const Icon(CupertinoIcons.doc_on_clipboard, color: AppTheme.primary),
+                onPressed: () => _copyToClipboard(context, code),
+              ),
             ],
           ),
           const SizedBox(height: 8),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: () {},
+              onPressed: () {
+                _copyToClipboard(context, code);
+                // Also navigate to Cart? Or Home?
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: isPrimary ? AppTheme.primary : Colors.transparent,
                 foregroundColor: isPrimary ? Colors.white : AppTheme.primary,

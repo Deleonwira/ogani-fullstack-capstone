@@ -29,6 +29,12 @@ public class OrderController {
         return ResponseEntity.ok(ApiResponse.success(orders));
     }
 
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<ApiResponse<List<Order>>> getOrdersByUserId(@PathVariable Integer userId) {
+        List<Order> orders = orderService.getOrdersByUserId(userId);
+        return ResponseEntity.ok(ApiResponse.success(orders));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<Order>> getOrderById(@PathVariable Integer id) {
         Order order = orderService.getOrderById(id);

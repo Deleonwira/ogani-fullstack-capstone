@@ -2,33 +2,63 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../theme/app_theme.dart';
+import 'order_tracking_screen.dart';
+import 'notifications_screen.dart';
+import 'auth/edit_profile_screen.dart';
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
+import 'auth/login_screen.dart';
+import 'order_history_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context);
+    final user = authProvider.user;
+    final String fullName = user?['fullName'] ?? 'John Doe';
+    final String email = user?['email'] ?? 'john.doe@ogani.com';
+    
     return Scaffold(
       backgroundColor: AppTheme.surface,
       appBar: AppBar(
         title: const Text('Ogani', style: TextStyle(fontWeight: FontWeight.bold)),
         leading: IconButton(
           icon: const Icon(CupertinoIcons.search),
-          onPressed: () {},
+          onPressed: () {
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Opening Search...')));
+          },
         ),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 16.0),
             child: CircleAvatar(
               backgroundImage: const CachedNetworkImageProvider(
-                  'https://lh3.googleusercontent.com/aida-public/AB6AXuC2b1Y0OsI8uP2zB50FsxXySEuu2QTOb8jFaLWY3oGTsYlBRBZZ_lP3-rpR85cbukui80WrwSbwxtPpJl6-a3f6tu7mxiFbfqMSUhjELMOqC2W0pQ4LjWZdd9LCf_CzJMlKSqGrj51YP0-DUAmVh-cf9XJpxooK7nWlUJQO8Vebz1_60E8aycpaJMnCk1_UMPsFta0zYxMMHwUFpw7ZNr62G-FYP-PkGEcMSjVRpcALXiEQUrjw_CuHHZn3_Ay5jp6nfWtMaAAROAgK'),
+                  'https://i.pravatar.cc/150?img=11'),
               radius: 16,
             ),
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+      body: !authProvider.isAuthenticated 
+        ? Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(CupertinoIcons.person_crop_circle_badge_xmark, size: 80, color: AppTheme.outlineVariant),
+                const SizedBox(height: 16),
+                Text('Please login to view Profile', style: Theme.of(context).textTheme.headlineMedium),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginScreen())),
+                  child: const Text('Login / Register'),
+                ),
+              ],
+            ),
+          )
+        : SingleChildScrollView(
+            padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
             // Hero Profile Section
@@ -43,7 +73,7 @@ class ProfileScreen extends StatelessWidget {
                       shape: BoxShape.circle,
                       border: Border.all(color: AppTheme.primaryContainer, width: 4),
                       image: const DecorationImage(
-                        image: CachedNetworkImageProvider('https://lh3.googleusercontent.com/aida-public/AB6AXuBS1CU51znLWR4xY_tm4eTZga0vjw_y4_vvDXanjZgSFXpWkNL6uyEdDFNeHrnu2ooIJDXkyTnZ4nNY8_C2MRXMTN5H_QC9JhYxUxjBjAhuuZY5AqTX8VF0uARDwPwNn63rXy301wA64JZSqhGykAykoSS1FCCSAKE_5WZfAoeX2PmZc0YKXG5qH5nEnPt1lzCAM8X6Xne7wYuC08-0at5WaVQoUW5sveUFA9rlM3up8-3qSWL7h4RHMq9EcRIh_GRIzI3fOjEn2EiX'),
+                        image: CachedNetworkImageProvider('https://i.pravatar.cc/150?img=11'),
                         fit: BoxFit.cover,
                       ),
                     ),
@@ -51,22 +81,27 @@ class ProfileScreen extends StatelessWidget {
                   Positioned(
                     bottom: 0,
                     right: 0,
-                    child: Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: const BoxDecoration(
-                        color: AppTheme.primary,
-                        shape: BoxShape.circle,
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => const EditProfileScreen()));
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: const BoxDecoration(
+                          color: AppTheme.primary,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(CupertinoIcons.pencil, size: 16, color: Colors.white),
                       ),
-                      child: const Icon(CupertinoIcons.pencil, size: 16, color: Colors.white),
                     ),
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 16),
-            const Text('John Doe', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+            Text(fullName, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
             const SizedBox(height: 4),
-            Text('john.doe@ogani.com', style: TextStyle(color: AppTheme.onSurfaceVariant)),
+            Text(email, style: const TextStyle(color: AppTheme.onSurfaceVariant)),
             const SizedBox(height: 32),
             
             // Stats Grid
@@ -84,15 +119,25 @@ class ProfileScreen extends StatelessWidget {
             const SizedBox(height: 32),
             
             // Menu List
-            _buildMenuItem(CupertinoIcons.cart, 'My Orders'),
+            _buildMenuItem(context, CupertinoIcons.cart, 'My Orders', onTap: () {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const OrderTrackingScreen()));
+            }),
             const SizedBox(height: 8),
-            _buildMenuItem(CupertinoIcons.location_solid, 'Saved Addresses'),
+            _buildMenuItem(context, CupertinoIcons.location_solid, 'Saved Addresses', onTap: () {
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Navigating to Saved Addresses...')));
+            }),
             const SizedBox(height: 8),
-            _buildMenuItem(CupertinoIcons.creditcard, 'Payment Methods'),
+            _buildMenuItem(context, CupertinoIcons.creditcard, 'Payment Methods', onTap: () {
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Navigating to Payment Methods...')));
+            }),
             const SizedBox(height: 8),
-            _buildMenuItem(CupertinoIcons.bell_solid, 'Notifications', hasBadge: true),
+            _buildMenuItem(context, CupertinoIcons.bell_solid, 'Notifications', hasBadge: true, onTap: () {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsScreen()));
+            }),
             const SizedBox(height: 8),
-            _buildMenuItem(CupertinoIcons.question_circle, 'Help Center'),
+            _buildMenuItem(context, CupertinoIcons.question_circle, 'Help Center', onTap: () {
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Navigating to Help Center...')));
+            }),
             
             const SizedBox(height: 48),
             
@@ -101,7 +146,33 @@ class ProfileScreen extends StatelessWidget {
               width: double.infinity,
               height: 56,
               child: ElevatedButton.icon(
-                onPressed: () {},
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: const Text('Logout'),
+                        content: const Text('Are you sure you want to logout?'),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text('Cancel'),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.pop(context); // Close dialog
+                              authProvider.logout();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Successfully logged out.')),
+                              );
+                            },
+                            child: const Text('Logout', style: TextStyle(color: AppTheme.error)),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                },
                 icon: const Icon(CupertinoIcons.square_arrow_right),
                 label: const Text('Logout', style: TextStyle(fontSize: 18)),
                 style: ElevatedButton.styleFrom(
@@ -124,16 +195,9 @@ class ProfileScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 16),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.8),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.outlineVariant, width: 0.5),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        color: AppTheme.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppTheme.outlineVariant.withValues(alpha: 0.5), width: 1),
       ),
       child: Column(
         children: [
@@ -144,7 +208,7 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMenuItem(IconData icon, String label, {bool hasBadge = false}) {
+  Widget _buildMenuItem(BuildContext context, IconData icon, String label, {bool hasBadge = false, VoidCallback? onTap}) {
     return Container(
       decoration: BoxDecoration(
         color: AppTheme.surfaceContainerLowest,
@@ -176,7 +240,7 @@ class ProfileScreen extends StatelessWidget {
             Icon(CupertinoIcons.chevron_right, color: AppTheme.outlineVariant),
           ],
         ),
-        onTap: () {},
+        onTap: onTap,
       ),
     );
   }

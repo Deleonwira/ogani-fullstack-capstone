@@ -1,7 +1,18 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:provider/provider.dart';
+
 import '../theme/app_theme.dart';
+import '../providers/cart_provider.dart';
+import '../models/cart_item.dart';
+import '../main.dart'; // For AppState
+import '../services/product_service.dart';
+import '../services/promo_service.dart';
+import '../providers/auth_provider.dart';
+import 'product_detail_screen.dart';
+import 'auth/login_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -21,9 +32,11 @@ class HomeScreen extends StatelessWidget {
               title: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  IconButton(
-                    icon: const Icon(CupertinoIcons.search, color: AppTheme.primary),
-                    onPressed: () {},
+                  Padding(
+                    padding: const EdgeInsets.only(left: 8.0),
+                    child: Image.asset('assets/icons/logo_ogani.png', height: 32, width: 32, fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) => const Icon(CupertinoIcons.cart_fill, color: AppTheme.primary, size: 28),
+                    ),
                   ),
                   Text(
                     'Ogani',
@@ -32,9 +45,9 @@ class HomeScreen extends StatelessWidget {
                           fontWeight: FontWeight.bold,
                         ),
                   ),
-                  CircleAvatar(
-                    backgroundImage: const CachedNetworkImageProvider(
-                        'https://lh3.googleusercontent.com/aida-public/AB6AXuB7y9gVZnT56NQd0X-WeBwRwhKp7NU2_a9liJSby69punCCNZs1t7TOBp9lEg7LyPetEv9rD6i-TwLuQhcDWgkrWZRIwKxc65QTV6Okg6udtbn1NQJA-Kn7v8jUI9Ck4eM2JF_J8fLYJowaPA7uQw-WRB6q_A_fDskB28aVbzj0NazdoFbWnRQi2-qCxHv9YTy7vYiUhAVx29qaBL2fNW-WoEnhJqBEDWW8u6aJYnhUOQIVjdh2jUEj0BgE2YiGUI7Xof5ICzZpb22F'),
+                  const CircleAvatar(
+                    backgroundImage: CachedNetworkImageProvider(
+                        'https://i.pravatar.cc/150?img=11'),
                     radius: 16,
                   ),
                 ],
@@ -46,11 +59,11 @@ class HomeScreen extends StatelessWidget {
                 padding: const EdgeInsets.only(bottom: 80.0), // Padding for bottom nav
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const _SearchField(),
-                    const _CategoriesScroll(),
-                    const _SpecialOffersCarousel(),
-                    const _PopularProductsGrid(),
+                  children: const [
+                    _SearchField(),
+                    _CategoriesScroll(),
+                    _SpecialOffersCarousel(),
+                    _PopularProductsGrid(),
                   ],
                 ),
               ),
@@ -67,28 +80,12 @@ class _SearchField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppTheme.surfaceContainerLowest,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.04),
-              blurRadius: 20,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: TextField(
-          decoration: InputDecoration(
-            hintText: 'Search for fresh produce...',
-            hintStyle: TextStyle(color: AppTheme.outline),
-            prefixIcon: const Icon(CupertinoIcons.search, color: AppTheme.primary),
-            border: InputBorder.none,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          ),
+    return const Padding(
+      padding: EdgeInsets.all(16.0),
+      child: TextField(
+        decoration: InputDecoration(
+          hintText: 'Search for fresh produce...',
+          prefixIcon: Icon(CupertinoIcons.search),
         ),
       ),
     );
@@ -112,7 +109,10 @@ class _CategoriesScroll extends StatelessWidget {
               children: [
                 Text('Categories', style: Theme.of(context).textTheme.headlineMedium),
                 TextButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    // Navigate to categories tab
+                    Provider.of<AppState>(context, listen: false).setTabIndex(1);
+                  },
                   child: const Text('View All', style: TextStyle(color: AppTheme.primary, fontWeight: FontWeight.bold)),
                 ),
               ],
@@ -124,11 +124,11 @@ class _CategoriesScroll extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: Row(
               children: [
-                _buildCategoryItem('Fruits', Icons.apple, true),
-                _buildCategoryItem('Vegetables', Icons.eco, false),
-                _buildCategoryItem('Dairy', Icons.egg, false),
-                _buildCategoryItem('Meat', Icons.set_meal, false),
-                _buildCategoryItem('Bakery', Icons.bakery_dining, false),
+                _buildCategoryItem(context, 'Fruits', Icons.apple, true),
+                _buildCategoryItem(context, 'Vegetables', CupertinoIcons.leaf_arrow_circlepath, false),
+                _buildCategoryItem(context, 'Dairy', Icons.egg_outlined, false),
+                _buildCategoryItem(context, 'Meat', Icons.set_meal_outlined, false),
+                _buildCategoryItem(context, 'Bakery', Icons.bakery_dining_outlined, false),
               ],
             ),
           ),
@@ -137,107 +137,177 @@ class _CategoriesScroll extends StatelessWidget {
     );
   }
 
-  Widget _buildCategoryItem(String title, IconData icon, bool isActive) {
+  Widget _buildCategoryItem(BuildContext context, String title, IconData icon, bool isActive) {
     return Padding(
       padding: const EdgeInsets.only(right: 16.0),
-      child: Column(
-        children: [
-          Container(
-            width: 64,
-            height: 64,
-            decoration: BoxDecoration(
-              color: isActive ? AppTheme.primaryContainer.withOpacity(0.2) : AppTheme.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(16),
+      child: GestureDetector(
+        onTap: () {
+          Provider.of<AppState>(context, listen: false).setTabIndex(1);
+        },
+        child: Column(
+          children: [
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: isActive ? AppTheme.primary : AppTheme.outline.withValues(alpha: 0.3),
+                  width: 1.5,
+                ),
+                color: isActive ? AppTheme.primary.withValues(alpha: 0.1) : Colors.transparent,
+              ),
+              child: Icon(icon, size: 24, color: isActive ? AppTheme.primary : AppTheme.onSurfaceVariant),
             ),
-            child: Icon(icon, size: 32, color: isActive ? AppTheme.primary : AppTheme.onSurfaceVariant),
-          ),
-          const SizedBox(height: 4),
-          Text(title, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
-        ],
+            const SizedBox(height: 8),
+            Text(title, style: TextStyle(fontSize: 12, fontWeight: isActive ? FontWeight.bold : FontWeight.w500, color: isActive ? AppTheme.primary : AppTheme.onSurface)),
+          ],
+        ),
       ),
     );
   }
 }
 
-class _SpecialOffersCarousel extends StatelessWidget {
+class _SpecialOffersCarousel extends StatefulWidget {
   const _SpecialOffersCarousel();
 
   @override
+  State<_SpecialOffersCarousel> createState() => _SpecialOffersCarouselState();
+}
+
+class _SpecialOffersCarouselState extends State<_SpecialOffersCarousel> {
+  final PageController _pageController = PageController();
+  int _currentPage = 0;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _startTimer();
+  }
+
+  void _startTimer() {
+    _timer = Timer.periodic(const Duration(seconds: 4), (Timer timer) {
+      if (_pageController.hasClients) {
+        // Use Consumer's promoService length (we'll fetch it inside the build safely, but here we can just animate blindly and wrap around by listening to page changes)
+        // Wait, better to just let it scroll to page + 1, and in the builder we can use `index % promos.length` for infinite scroll.
+        _pageController.nextPage(
+          duration: const Duration(milliseconds: 600),
+          curve: Curves.easeInOut,
+        );
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        children: [
-          Container(
-            height: 180,
-            width: double.infinity,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
-                  blurRadius: 20,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-              image: const DecorationImage(
-                image: CachedNetworkImageProvider(
-                    'https://lh3.googleusercontent.com/aida-public/AB6AXuC749SMip_deDN_zfJmiSb-v0dJ5tZiB7jSRalTJrTLWt1hWgHC_hWrpW1tENECLrdoiqaRLmk6WWTG0kSCCIn4j52Bo-fy9RfHo_UPjMKBrykgkj5R_iBQt0Y4MKPSpsPzLyhASbz6x1Zvb_qV0dfwTxD8GF2Jf-xargJisYHLsHw_H75qr7BgH3JWg9jwWYgX9xkxuOe4yZgiZPBB7RsjvK4XMwT2rKja9QIWdtMgE8ZG50oZsWdZCDhwVIS09JRYxzTJrTfcbL2x'),
-                fit: BoxFit.cover,
-              ),
-            ),
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                gradient: LinearGradient(
-                  colors: [Colors.black.withOpacity(0.6), Colors.transparent],
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
-                ),
-              ),
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: AppTheme.secondary,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: const Text(
-                      'LIMITED TIME',
-                      style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Fresh Greens\n30% OFF',
-                    style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold, height: 1.2),
-                  ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    'Sourced directly from local farms',
-                    style: TextStyle(color: Colors.white70, fontSize: 14),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+    return Consumer<PromoService>(
+      builder: (context, promoService, child) {
+        if (promoService.isLoading) {
+          return const Padding(
+            padding: EdgeInsets.all(32.0),
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        final promos = promoService.promos;
+        if (promos.isEmpty) {
+          return const SizedBox.shrink();
+        }
+
+        return Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
             children: [
-              Container(width: 24, height: 6, decoration: BoxDecoration(color: AppTheme.primary, borderRadius: BorderRadius.circular(3))),
-              const SizedBox(width: 8),
-              Container(width: 6, height: 6, decoration: BoxDecoration(color: AppTheme.outlineVariant, borderRadius: BorderRadius.circular(3))),
-              const SizedBox(width: 8),
-              Container(width: 6, height: 6, decoration: BoxDecoration(color: AppTheme.outlineVariant, borderRadius: BorderRadius.circular(3))),
+              SizedBox(
+                height: 180,
+                child: PageView.builder(
+                  controller: _pageController,
+                  onPageChanged: (int page) {
+                    setState(() {
+                      _currentPage = page % promos.length;
+                    });
+                  },
+                  itemBuilder: (context, index) {
+                    final promo = promos[index % promos.length];
+                    return Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 4),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        image: DecorationImage(
+                          image: CachedNetworkImageProvider(promo.bannerImageUrl),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          gradient: LinearGradient(
+                            colors: [Colors.black.withValues(alpha: 0.6), Colors.transparent],
+                            begin: Alignment.centerLeft,
+                            end: Alignment.centerRight,
+                          ),
+                        ),
+                        padding: const EdgeInsets.all(24.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: AppTheme.secondary,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: const Text(
+                                'LIMITED TIME',
+                                style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              promo.title,
+                              style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold, height: 1.2),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              promo.description,
+                              style: const TextStyle(color: Colors.white70, fontSize: 14),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(
+                  promos.length,
+                  (index) => Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                    width: _currentPage == index ? 24 : 6,
+                    height: 6,
+                    decoration: BoxDecoration(
+                      color: _currentPage == index ? AppTheme.primary : AppTheme.outlineVariant,
+                      borderRadius: BorderRadius.circular(3),
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
@@ -247,69 +317,59 @@ class _PopularProductsGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Popular Products', style: Theme.of(context).textTheme.headlineMedium),
-          const SizedBox(height: 16),
-          GridView.count(
-            crossAxisCount: 2,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            mainAxisSpacing: 16,
-            crossAxisSpacing: 16,
-            childAspectRatio: 0.7,
+    return Consumer<ProductService>(
+      builder: (context, productService, child) {
+        if (productService.isLoading) {
+          return const Padding(
+            padding: EdgeInsets.all(32.0),
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        final products = productService.products.take(6).toList(); // Show top 6
+
+        return Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildProductCard(
-                'Organic Pineapple',
-                '1 unit (approx 1.2kg)',
-                '\$4.99',
-                'https://lh3.googleusercontent.com/aida-public/AB6AXuCnnM-q7uyEBDu9JF9MBKY0mo8G4CiVxY8c3JRQCuE8SjwWIpgvnJxEAjycjHGPqJgHhMY2QFjvprq7DTEzFFpv4isTTD5TI-9Lb-MZ8jeltTd32z0dKvTZD0EKA1MmgqiKLTFNX_RADXPpZR6NEJkzFXGgFewHv5HmhJwVTM1Ah43irDzNL6_TUovqhdi4vkJR3YQboRSgdp3U-k27LYyvQoc7zLY_9Z0cBx9arD87ifnJP6BE9RHsmq72pulRJZrWWVkDoJc6fQeJ',
-                isBestSeller: true,
-              ),
-              _buildProductCard(
-                'Farm Fresh Eggs',
-                '12 Eggs, Large',
-                '\$5.25',
-                'https://lh3.googleusercontent.com/aida-public/AB6AXuA4t7QgzGc0oDMftzxlEhGKpDCVgRIWkKcf4GnaRIO9x3VqJ9dXUiGKycav-0_r-foHK6RkK1V_3sSggzOlvvOkTH4TiiSCNfTsldJH7mFbcOp3sCFcyD-mIQSh0HqqFyYA8ffQecISMx_BmbshkYVqiD6svoqQ8jQ5qGmj267baJL5JdA0Do17jzPSASYwivbqSFt3dDrHo5lySIimzHnu8gECoe3pLxM2C-alZlCJSD8eekG4IFvnurNz0VL7Ip_k-nnDlazxaYYR',
-                oldPrice: '\$6.50',
-                isDiscount: true,
-              ),
-              _buildProductCard(
-                'Greek Yogurt',
-                '500g, Plain Low Fat',
-                '\$3.80',
-                'https://lh3.googleusercontent.com/aida-public/AB6AXuAMalsFIvkA4JCzVPfEVjTk4YqMPCCVljZtVWbeQd_SQV0_kVLG7QD5k2Z3beFHJZep7s0XOqyoS4sEiWuEuUSz2hlVDwq50qDdXC3TLH7V2aAfEu6Mgfe9IywKBKjXpbASNPswaWby3He_j_Q8rAT4-GAEGz_mhrisVxCzwzV3_j_KIRNXLWJPcH5mSmQORZnJ8DTxXYtwx-eo1xbzkT8-LRHPR3u2HeRbbO8yX0CEaWdWKN-myWHpdWSOL91swdV21ilC7iElj5Op',
-              ),
-              _buildProductCard(
-                'Mixed Salad Box',
-                '250g, Pre-washed',
-                '\$7.50',
-                'https://lh3.googleusercontent.com/aida-public/AB6AXuAr2Tugzyj07nHOSYSNkDFUn08ymo9lAR9k-4VBAidviwoZbYXxtrZ3iUKJzyYt9fLq6WxWomWILVdHa3OMaOjFi84iepyjp0jPrxPd7A8xSOSaJpIQIdBFnQmprvUjkXbhOkheAcnZ-XnfaBnl22k1hvNh7KgCXO4ZTctD_FUcfG5-KHYODaBImQvkRyA4BeOZramI01wP-EoxdtT2Uupf7z-KmAyn0sMNtKYkr25n_sFo-EuOX3tln6kQ2BpQ28WZhA0Rgc_SQ1ju',
-              ),
+              Text('Popular Products', style: Theme.of(context).textTheme.headlineMedium),
+              const SizedBox(height: 16),
+              if (products.isEmpty)
+                const Text('No products available.', style: TextStyle(color: AppTheme.onSurfaceVariant))
+              else
+                GridView.builder(
+                  itemCount: products.length,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 16,
+                    crossAxisSpacing: 16,
+                    childAspectRatio: 0.7,
+                  ),
+                  itemBuilder: (context, index) {
+                    return _buildProductCard(context, products[index]);
+                  },
+                ),
             ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildProductCard(String name, String desc, String price, String imgUrl, {bool isBestSeller = false, String? oldPrice, bool isDiscount = false}) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppTheme.surfaceContainerLowest,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.outlineVariant, width: 0.5),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+  Widget _buildProductCard(BuildContext context, Product product) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(context, MaterialPageRoute(builder: (_) => ProductDetailScreen(product: product)));
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppTheme.surfaceContainerLowest,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppTheme.outlineVariant, width: 1.0),
+        ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -323,12 +383,12 @@ class _PopularProductsGrid extends StatelessWidget {
                     color: AppTheme.surfaceContainerLow,
                     borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
                     image: DecorationImage(
-                      image: CachedNetworkImageProvider(imgUrl),
+                      image: CachedNetworkImageProvider(product.imageUrl),
                       fit: BoxFit.cover,
                     ),
                   ),
                 ),
-                if (isBestSeller)
+                if (product.isBestSeller)
                   Positioned(
                     top: 8,
                     left: 8,
@@ -347,8 +407,8 @@ class _PopularProductsGrid extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(name, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14), maxLines: 1, overflow: TextOverflow.ellipsis),
-                Text(desc, style: TextStyle(color: AppTheme.onSurfaceVariant, fontSize: 12), maxLines: 1, overflow: TextOverflow.ellipsis),
+                Text(product.name, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14), maxLines: 1, overflow: TextOverflow.ellipsis),
+                Text(product.description, style: TextStyle(color: AppTheme.onSurfaceVariant, fontSize: 12), maxLines: 1, overflow: TextOverflow.ellipsis),
                 const SizedBox(height: 8),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -356,26 +416,50 @@ class _PopularProductsGrid extends StatelessWidget {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (oldPrice != null)
-                          Text(oldPrice, style: TextStyle(decoration: TextDecoration.lineThrough, fontSize: 10, color: AppTheme.onSurfaceVariant)),
+                        if (product.oldPrice != null)
+                          Text(product.oldPrice!, style: TextStyle(decoration: TextDecoration.lineThrough, fontSize: 10, color: AppTheme.onSurfaceVariant)),
                         Text(
-                          price,
+                          '\$${product.price.toStringAsFixed(2)}',
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: isDiscount ? AppTheme.secondary : AppTheme.primary,
+                            color: product.isDiscount ? AppTheme.secondary : AppTheme.primary,
                           ),
                         ),
                       ],
                     ),
-                    Container(
-                      width: 32,
-                      height: 32,
-                      decoration: BoxDecoration(
-                        color: AppTheme.secondary,
-                        shape: BoxShape.circle,
+                    GestureDetector(
+                      onTap: () {
+                        final auth = Provider.of<AuthProvider>(context, listen: false);
+                        if (!auth.isAuthenticated) {
+                          Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
+                          return;
+                        }
+                        
+                        // Add to Cart
+                        Provider.of<CartProvider>(context, listen: false).addItem(product);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('${product.name} added to cart'),
+                            duration: const Duration(seconds: 2),
+                            action: SnackBarAction(
+                              label: 'VIEW CART',
+                              onPressed: () {
+                                Provider.of<AppState>(context, listen: false).setTabIndex(2);
+                              },
+                            ),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        width: 32,
+                        height: 32,
+                        decoration: const BoxDecoration(
+                          color: AppTheme.secondary,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(CupertinoIcons.add, color: Colors.white, size: 20),
                       ),
-                      child: const Icon(CupertinoIcons.add, color: Colors.white, size: 20),
                     ),
                   ],
                 ),
@@ -383,6 +467,7 @@ class _PopularProductsGrid extends StatelessWidget {
             ),
           ),
         ],
+      ),
       ),
     );
   }

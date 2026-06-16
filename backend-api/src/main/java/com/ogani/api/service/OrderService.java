@@ -17,12 +17,19 @@ public class OrderService {
         return orderRepository.findAll();
     }
 
+    public List<Order> getOrdersByUserId(Integer userId) {
+        return orderRepository.findByUserUserIdOrderByOrderTimeDesc(userId);
+    }
+
     public Order getOrderById(Integer id) {
         return orderRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + id));
     }
 
     public Order createOrder(Order order) {
+        if (order.getOrderDetails() != null) {
+            order.getOrderDetails().forEach(detail -> detail.setOrder(order));
+        }
         return orderRepository.save(order);
     }
 

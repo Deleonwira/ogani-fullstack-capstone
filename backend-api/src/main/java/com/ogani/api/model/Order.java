@@ -10,6 +10,8 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import java.util.List;
 
 @Data
 @Builder
@@ -72,6 +74,10 @@ public class Order {
 
     @Column(name = "shipping_address", columnDefinition = "TEXT")
     private String shippingAddress;
+
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private List<OrderDetail> orderDetails;
 
     public enum OrderStatus {
         pending, processing, shipped, completed, cancelled
