@@ -3,7 +3,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
 
+import 'notifications_screen.dart';
 import '../theme/app_theme.dart';
+import '../main.dart';
+import '../providers/auth_provider.dart';
+import '../services/wishlist_service.dart';
+import 'auth/login_screen.dart';
 import '../models/cart_item.dart';
 import '../providers/cart_provider.dart';
 import '../services/product_service.dart';
@@ -115,19 +120,36 @@ class CategoryProductsScreen extends StatelessWidget {
                   Positioned(
                     top: 8,
                     right: 8,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.8),
-                        shape: BoxShape.circle,
-                      ),
-                      child: IconButton(
-                        icon: const Icon(CupertinoIcons.heart, size: 18, color: AppTheme.onSurfaceVariant),
-                        onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${product.name} added to wishlist')));
-                        },
-                        constraints: const BoxConstraints(),
-                        padding: const EdgeInsets.all(6),
-                      ),
+                    child: Consumer<WishlistService>(
+                      builder: (context, wishlistService, child) {
+                        final isWishlisted = wishlistService.wishlistItems.any((item) => item.id == product.id);
+                        return GestureDetector(
+                          onTap: () {
+                            final auth = Provider.of<AuthProvider>(context, listen: false);
+                            if (!auth.isAuthenticated) {
+                              Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
+                              return;
+                            }
+                            if (isWishlisted) {
+                              wishlistService.removeFromWishlist(product.id);
+                            } else {
+                              wishlistService.addToWishlist(product.id);
+                            }
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.8),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              isWishlisted ? CupertinoIcons.heart_fill : CupertinoIcons.heart,
+                              color: isWishlisted ? Colors.red : AppTheme.onSurfaceVariant,
+                              size: 18,
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ],

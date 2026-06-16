@@ -6,6 +6,7 @@ import '../theme/app_theme.dart';
 import '../providers/cart_provider.dart';
 import '../providers/auth_provider.dart';
 import '../services/order_service.dart';
+import '../services/notification_service.dart';
 import 'order_tracking_screen.dart';
 
 class CheckoutScreen extends StatefulWidget {
@@ -17,6 +18,66 @@ class CheckoutScreen extends StatefulWidget {
 
 class _CheckoutScreenState extends State<CheckoutScreen> {
   int _selectedPaymentMethod = 0; // 0: Credit Card, 1: Digital Wallet, 2: Bank Transfer
+
+  // Address State
+  String _addressName = 'Home Address';
+  String _addressDetail = '123 Organic Lane, Fresh Garden Estate\nSan Francisco, CA 94103';
+  String _addressPhone = '+1 (555) 000-1234';
+
+  void _showEditAddressDialog() {
+    final nameController = TextEditingController(text: _addressName);
+    final detailController = TextEditingController(text: _addressDetail);
+    final phoneController = TextEditingController(text: _addressPhone);
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Edit Delivery Address'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: nameController,
+                  decoration: const InputDecoration(labelText: 'Address Name (e.g. Home, Office)'),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: detailController,
+                  decoration: const InputDecoration(labelText: 'Full Address'),
+                  maxLines: 3,
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: phoneController,
+                  decoration: const InputDecoration(labelText: 'Phone Number'),
+                  keyboardType: TextInputType.phone,
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  _addressName = nameController.text.isNotEmpty ? nameController.text : _addressName;
+                  _addressDetail = detailController.text.isNotEmpty ? detailController.text : _addressDetail;
+                  _addressPhone = phoneController.text.isNotEmpty ? phoneController.text : _addressPhone;
+                });
+                Navigator.pop(context);
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -62,7 +123,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           Text('Delivery Address', style: Theme.of(context).textTheme.headlineMedium),
                         ],
                       ),
-                      TextButton(onPressed: () {}, child: const Text('Change')),
+                      TextButton(
+                        onPressed: _showEditAddressDialog,
+                        child: const Text('Change'),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -82,11 +146,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('Home Address', style: TextStyle(fontWeight: FontWeight.bold)),
+                              Text(_addressName, style: const TextStyle(fontWeight: FontWeight.bold)),
                               const SizedBox(height: 4),
-                              Text('123 Organic Lane, Fresh Garden Estate\nSan Francisco, CA 94103', style: TextStyle(color: AppTheme.onSurfaceVariant, fontSize: 14)),
+                              Text(_addressDetail, style: TextStyle(color: AppTheme.onSurfaceVariant, fontSize: 14)),
                               const SizedBox(height: 4),
-                              Text('+1 (555) 000-1234', style: TextStyle(color: AppTheme.onSurfaceVariant, fontSize: 12)),
+                              Text(_addressPhone, style: TextStyle(color: AppTheme.onSurfaceVariant, fontSize: 12)),
                             ],
                           ),
                         ),
@@ -245,6 +309,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                               if (success) {
                                 cart.clear();
                                 if (context.mounted) {
+                                  Provider.of<NotificationService>(context, listen: false).fetchNotifications();
                                   Navigator.pushReplacement(
                                     context,
                                     // Will fix this order tracking navigation later

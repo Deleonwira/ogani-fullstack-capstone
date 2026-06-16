@@ -52,7 +52,7 @@ class CustomBottomNav extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? AppTheme.secondaryContainer : Colors.transparent,
+          color: isSelected ? AppTheme.primary : Colors.transparent,
           borderRadius: BorderRadius.circular(20),
         ),
         child: Column(
@@ -60,7 +60,7 @@ class CustomBottomNav extends StatelessWidget {
           children: [
             Icon(
               icon,
-              color: isSelected ? AppTheme.onSecondary : AppTheme.onSurfaceVariant,
+              color: isSelected ? AppTheme.onPrimary : AppTheme.onSurfaceVariant,
             ),
             const SizedBox(height: 4),
             Text(
@@ -68,7 +68,7 @@ class CustomBottomNav extends StatelessWidget {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: isSelected ? AppTheme.onSecondary : AppTheme.onSurfaceVariant,
+                color: isSelected ? AppTheme.onPrimary : AppTheme.onSurfaceVariant,
               ),
             ),
           ],

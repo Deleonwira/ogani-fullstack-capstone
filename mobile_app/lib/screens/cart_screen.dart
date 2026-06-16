@@ -11,6 +11,8 @@ import 'checkout_screen.dart';
 import '../models/cart_item.dart';
 import '../providers/auth_provider.dart';
 import 'auth/login_screen.dart';
+import 'notifications_screen.dart';
+import '../main.dart';
 
 class CartScreen extends StatelessWidget {
   const CartScreen({super.key});
@@ -22,123 +24,260 @@ class CartScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppTheme.surface,
       appBar: AppBar(
-        title: const Text('Ogani', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.asset(
+              'assets/icons/app-logo.png',
+              height: 38,
+              width: 38,
+              fit: BoxFit.contain,
+              errorBuilder: (context, error, stackTrace) => const Icon(
+                CupertinoIcons.cart_fill,
+                color: AppTheme.primary,
+                size: 28,
+              ),
+            ),
+            const SizedBox(width: 8),
+            const Text('Ogani', style: TextStyle(fontWeight: FontWeight.bold)),
+          ],
+        ),
         leading: IconButton(
           icon: const Icon(CupertinoIcons.search),
           onPressed: () {},
         ),
         actions: [
+          IconButton(
+            icon: const Icon(CupertinoIcons.bell, color: AppTheme.primary),
+            onPressed: () {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsScreen()));
+            },
+          ),
           Padding(
             padding: const EdgeInsets.only(right: 16.0),
-            child: CircleAvatar(
-              backgroundImage: const CachedNetworkImageProvider(
-                  'https://i.pravatar.cc/150?img=11'),
-              radius: 16,
-            ),
-          ),
-        ],
-      ),
-      body: !Provider.of<AuthProvider>(context).isAuthenticated 
-        ? Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(CupertinoIcons.person_crop_circle_badge_xmark, size: 80, color: AppTheme.outlineVariant),
-                const SizedBox(height: 16),
-                Text('Please login to use Cart', style: Theme.of(context).textTheme.headlineMedium),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginScreen())),
-                  child: const Text('Login / Register'),
+            child: PopupMenuButton<String>(
+              offset: const Offset(0, 45),
+              padding: EdgeInsets.zero,
+              icon: Consumer<AuthProvider>(
+                builder: (context, auth, child) => CircleAvatar(
+                  backgroundImage: CachedNetworkImageProvider(
+                      auth.user?['avatarUrl'] ?? 'https://i.pravatar.cc/150?img=11'),
+                  radius: 16,
+                ),
+              ),
+              onSelected: (value) {
+                if (value == 'profile') {
+                  Provider.of<AppState>(context, listen: false).setTabIndex(3);
+                } else if (value == 'logout') {
+                  Provider.of<AuthProvider>(context, listen: false).logout();
+                }
+              },
+              itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                const PopupMenuItem<String>(
+                  value: 'profile',
+                  child: Row(
+                    children: [
+                      Icon(CupertinoIcons.person, size: 20),
+                      SizedBox(width: 12),
+                      Text('Profile'),
+                    ],
+                  ),
+                ),
+                const PopupMenuItem<String>(
+                  value: 'logout',
+                  child: Row(
+                    children: [
+                      Icon(CupertinoIcons.square_arrow_right, size: 20),
+                      SizedBox(width: 12),
+                      Text('Logout'),
+                    ],
+                  ),
                 ),
               ],
             ),
-          )
-        : Column(
-        children: [
-          Expanded(
-            child: cart.items.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(CupertinoIcons.cart, size: 80, color: AppTheme.outlineVariant),
-                        const SizedBox(height: 16),
-                        Text('Your cart is empty', style: Theme.of(context).textTheme.headlineMedium),
-                      ],
-                    ),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.all(16.0),
-                    itemCount: cart.items.length + 1, // +1 for the title
-                    itemBuilder: (context, index) {
-                      if (index == 0) {
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 16.0),
-                          child: Text('My Cart', style: Theme.of(context).textTheme.headlineMedium),
-                        );
-                      }
-                      final cartItem = cart.items.values.toList()[index - 1];
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 16.0),
-                        child: _buildCartItem(context, cartItem),
-                      );
-                    },
-                  ),
           ),
-          
-          // Checkout Bottom Section
-          if (cart.items.isNotEmpty)
-            Container(
-              padding: const EdgeInsets.all(24.0),
-              decoration: BoxDecoration(
-                color: AppTheme.surfaceContainerLowest,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-                border: Border(top: BorderSide(color: AppTheme.outlineVariant.withValues(alpha: 0.5), width: 1)),
-              ),
-              child: SafeArea(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('Subtotal', style: TextStyle(color: AppTheme.onSurfaceVariant)),
-                        Text('\$${cart.subtotalAmount.toStringAsFixed(2)}', style: TextStyle(color: AppTheme.onSurfaceVariant)),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('Delivery Fee', style: TextStyle(color: AppTheme.onSurfaceVariant)),
-                        Text('\$${cart.deliveryFee.toStringAsFixed(2)}', style: TextStyle(color: AppTheme.onSurfaceVariant)),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('Total', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                        Text('\$${cart.totalAmount.toStringAsFixed(2)}', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.primary)),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: cart.items.isEmpty ? null : () {
-                          Navigator.push(context, MaterialPageRoute(builder: (_) => const CheckoutScreen()));
-                        },
-                        child: const Text('Checkout', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
         ],
       ),
+      body: !Provider.of<AuthProvider>(context).isAuthenticated
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    CupertinoIcons.person_crop_circle_badge_xmark,
+                    size: 80,
+                    color: AppTheme.outlineVariant,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Please login to use Cart',
+                    style: Theme.of(context).textTheme.headlineMedium,
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const LoginScreen()),
+                    ),
+                    child: const Text('Login / Register'),
+                  ),
+                ],
+              ),
+            )
+          : Column(
+              children: [
+                Expanded(
+                  child: cart.items.isEmpty
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                CupertinoIcons.cart,
+                                size: 80,
+                                color: AppTheme.outlineVariant,
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'Your cart is empty',
+                                style: Theme.of(
+                                  context,
+                                ).textTheme.headlineMedium,
+                              ),
+                            ],
+                          ),
+                        )
+                      : ListView.builder(
+                          padding: const EdgeInsets.all(16.0),
+                          itemCount: cart.items.length + 1, // +1 for the title
+                          itemBuilder: (context, index) {
+                            if (index == 0) {
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 16.0),
+                                child: Text(
+                                  'My Cart',
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.headlineMedium,
+                                ),
+                              );
+                            }
+                            final cartItem = cart.items.values
+                                .toList()[index - 1];
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 16.0),
+                              child: _buildCartItem(context, cartItem),
+                            );
+                          },
+                        ),
+                ),
+
+                // Checkout Bottom Section
+                if (cart.items.isNotEmpty)
+                  Container(
+                    padding: const EdgeInsets.all(24.0),
+                    decoration: BoxDecoration(
+                      color: AppTheme.surfaceContainerLowest,
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(24),
+                      ),
+                      border: Border(
+                        top: BorderSide(
+                          color: AppTheme.outlineVariant.withValues(alpha: 0.5),
+                          width: 1,
+                        ),
+                      ),
+                    ),
+                    child: SafeArea(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Subtotal',
+                                style: TextStyle(
+                                  color: AppTheme.onSurfaceVariant,
+                                ),
+                              ),
+                              Text(
+                                '\$${cart.subtotalAmount.toStringAsFixed(2)}',
+                                style: TextStyle(
+                                  color: AppTheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Delivery Fee',
+                                style: TextStyle(
+                                  color: AppTheme.onSurfaceVariant,
+                                ),
+                              ),
+                              Text(
+                                '\$${cart.deliveryFee.toStringAsFixed(2)}',
+                                style: TextStyle(
+                                  color: AppTheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'Total',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                '\$${cart.totalAmount.toStringAsFixed(2)}',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppTheme.primary,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 24),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: cart.items.isEmpty
+                                  ? null
+                                  : () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) =>
+                                              const CheckoutScreen(),
+                                        ),
+                                      );
+                                    },
+                              child: const Text(
+                                'Checkout',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
+            ),
     );
   }
 
@@ -171,20 +310,47 @@ class CartScreen extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Expanded(child: Text(item.product.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16), maxLines: 1, overflow: TextOverflow.ellipsis)),
+                    Expanded(
+                      child: Text(
+                        item.product.name,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
                     GestureDetector(
                       onTap: () => cart.removeItem(item.product.id),
-                      child: const Icon(CupertinoIcons.trash, color: AppTheme.error, size: 18),
-                    )
+                      child: const Icon(
+                        CupertinoIcons.trash,
+                        color: AppTheme.error,
+                        size: 18,
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 4),
-                Text(item.product.description, style: TextStyle(color: AppTheme.onSurfaceVariant, fontSize: 14)),
+                Text(
+                  item.product.description,
+                  style: TextStyle(
+                    color: AppTheme.onSurfaceVariant,
+                    fontSize: 14,
+                  ),
+                ),
                 const SizedBox(height: 12),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('\$${item.product.price.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: AppTheme.primary)),
+                    Text(
+                      '\$${item.product.price.toStringAsFixed(2)}',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                        color: AppTheme.primary,
+                      ),
+                    ),
                     Container(
                       decoration: BoxDecoration(
                         color: AppTheme.surfaceContainerLow,
@@ -193,16 +359,27 @@ class CartScreen extends StatelessWidget {
                       child: Row(
                         children: [
                           IconButton(
-                            icon: const Icon(CupertinoIcons.minus, size: 16, color: AppTheme.primary),
+                            icon: const Icon(
+                              CupertinoIcons.minus,
+                              size: 16,
+                              color: AppTheme.primary,
+                            ),
                             onPressed: () {
                               cart.decrementQuantity(item.product.id);
                             },
                             padding: const EdgeInsets.all(8),
                             constraints: const BoxConstraints(),
                           ),
-                          Text('${item.quantity}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                          Text(
+                            '${item.quantity}',
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
                           IconButton(
-                            icon: const Icon(CupertinoIcons.add, size: 16, color: AppTheme.primary),
+                            icon: const Icon(
+                              CupertinoIcons.add,
+                              size: 16,
+                              color: AppTheme.primary,
+                            ),
                             onPressed: () {
                               cart.incrementQuantity(item.product.id);
                             },

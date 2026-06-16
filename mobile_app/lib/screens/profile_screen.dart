@@ -9,6 +9,9 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import 'auth/login_screen.dart';
 import 'order_history_screen.dart';
+import 'wishlist_screen.dart';
+import 'promos_screen.dart';
+import '../main.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -19,175 +22,322 @@ class ProfileScreen extends StatelessWidget {
     final user = authProvider.user;
     final String fullName = user?['fullName'] ?? 'John Doe';
     final String email = user?['email'] ?? 'john.doe@ogani.com';
-    
+    final String avatarUrl = user?['avatarUrl'] ?? 'https://i.pravatar.cc/150?img=11';
+
     return Scaffold(
       backgroundColor: AppTheme.surface,
       appBar: AppBar(
-        title: const Text('Ogani', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.asset(
+              'assets/icons/app-logo.png',
+              height: 38,
+              width: 38,
+              fit: BoxFit.contain,
+              errorBuilder: (context, error, stackTrace) => const Icon(
+                CupertinoIcons.cart_fill,
+                color: AppTheme.primary,
+                size: 28,
+              ),
+            ),
+            const SizedBox(width: 8),
+            const Text('Ogani', style: TextStyle(fontWeight: FontWeight.bold)),
+          ],
+        ),
         leading: IconButton(
           icon: const Icon(CupertinoIcons.search),
           onPressed: () {
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Opening Search...')));
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(const SnackBar(content: Text('Opening Search...')));
           },
         ),
         actions: [
+          IconButton(
+            icon: const Icon(CupertinoIcons.bell, color: AppTheme.primary),
+            onPressed: () {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsScreen()));
+            },
+          ),
           Padding(
             padding: const EdgeInsets.only(right: 16.0),
-            child: CircleAvatar(
-              backgroundImage: const CachedNetworkImageProvider(
-                  'https://i.pravatar.cc/150?img=11'),
-              radius: 16,
+            child: PopupMenuButton<String>(
+              offset: const Offset(0, 45),
+              padding: EdgeInsets.zero,
+              icon: CircleAvatar(
+                backgroundImage: CachedNetworkImageProvider(avatarUrl),
+                radius: 16,
+              ),
+              onSelected: (value) {
+                if (value == 'profile') {
+                  Provider.of<AppState>(context, listen: false).setTabIndex(3);
+                } else if (value == 'logout') {
+                  Provider.of<AuthProvider>(context, listen: false).logout();
+                }
+              },
+              itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                const PopupMenuItem<String>(
+                  value: 'profile',
+                  child: Row(
+                    children: [
+                      Icon(CupertinoIcons.person, size: 20),
+                      SizedBox(width: 12),
+                      Text('Profile'),
+                    ],
+                  ),
+                ),
+                const PopupMenuItem<String>(
+                  value: 'logout',
+                  child: Row(
+                    children: [
+                      Icon(CupertinoIcons.square_arrow_right, size: 20),
+                      SizedBox(width: 12),
+                      Text('Logout'),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
         ],
       ),
-      body: !authProvider.isAuthenticated 
-        ? Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(CupertinoIcons.person_crop_circle_badge_xmark, size: 80, color: AppTheme.outlineVariant),
-                const SizedBox(height: 16),
-                Text('Please login to view Profile', style: Theme.of(context).textTheme.headlineMedium),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginScreen())),
-                  child: const Text('Login / Register'),
-                ),
-              ],
-            ),
-          )
-        : SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            // Hero Profile Section
-            const SizedBox(height: 24),
-            Center(
-              child: Stack(
+      body: !authProvider.isAuthenticated
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Container(
-                    width: 100,
-                    height: 100,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(color: AppTheme.primaryContainer, width: 4),
-                      image: const DecorationImage(
-                        image: CachedNetworkImageProvider('https://i.pravatar.cc/150?img=11'),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
+                  Icon(
+                    CupertinoIcons.person_crop_circle_badge_xmark,
+                    size: 80,
+                    color: AppTheme.outlineVariant,
                   ),
-                  Positioned(
-                    bottom: 0,
-                    right: 0,
-                    child: GestureDetector(
-                      onTap: () {
-                        Navigator.push(context, MaterialPageRoute(builder: (_) => const EditProfileScreen()));
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: const BoxDecoration(
-                          color: AppTheme.primary,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(CupertinoIcons.pencil, size: 16, color: Colors.white),
-                      ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Please login to view Profile',
+                    style: Theme.of(context).textTheme.headlineMedium,
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const LoginScreen()),
                     ),
+                    child: const Text('Login / Register'),
                   ),
                 ],
               ),
-            ),
-            const SizedBox(height: 16),
-            Text(fullName, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 4),
-            Text(email, style: const TextStyle(color: AppTheme.onSurfaceVariant)),
-            const SizedBox(height: 32),
-            
-            // Stats Grid
-            Row(
-              children: [
-                Expanded(
-                  child: _buildStatCard('12', 'Orders'),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _buildStatCard('2.4k', 'Points'),
-                ),
-              ],
-            ),
-            const SizedBox(height: 32),
-            
-            // Menu List
-            _buildMenuItem(context, CupertinoIcons.cart, 'My Orders', onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => const OrderTrackingScreen()));
-            }),
-            const SizedBox(height: 8),
-            _buildMenuItem(context, CupertinoIcons.location_solid, 'Saved Addresses', onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Navigating to Saved Addresses...')));
-            }),
-            const SizedBox(height: 8),
-            _buildMenuItem(context, CupertinoIcons.creditcard, 'Payment Methods', onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Navigating to Payment Methods...')));
-            }),
-            const SizedBox(height: 8),
-            _buildMenuItem(context, CupertinoIcons.bell_solid, 'Notifications', hasBadge: true, onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsScreen()));
-            }),
-            const SizedBox(height: 8),
-            _buildMenuItem(context, CupertinoIcons.question_circle, 'Help Center', onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Navigating to Help Center...')));
-            }),
-            
-            const SizedBox(height: 48),
-            
-            // Logout
-            SizedBox(
-              width: double.infinity,
-              height: 56,
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        title: const Text('Logout'),
-                        content: const Text('Are you sure you want to logout?'),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(context),
-                            child: const Text('Cancel'),
+            )
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                children: [
+                  // Hero Profile Section
+                  const SizedBox(height: 24),
+                  Center(
+                    child: Stack(
+                      children: [
+                        Container(
+                          width: 100,
+                          height: 100,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: AppTheme.outlineVariant,
+                              width: 2,
+                            ),
+                            image: DecorationImage(
+                              image: CachedNetworkImageProvider(avatarUrl),
+                              fit: BoxFit.cover,
+                            ),
                           ),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.pop(context); // Close dialog
-                              authProvider.logout();
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Successfully logged out.')),
+                        ),
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const EditProfileScreen(),
+                                ),
                               );
                             },
-                            child: const Text('Logout', style: TextStyle(color: AppTheme.error)),
+                            child: Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: const BoxDecoration(
+                                color: AppTheme.primary,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                CupertinoIcons.pencil,
+                                size: 16,
+                                color: Colors.white,
+                              ),
+                            ),
                           ),
-                        ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    fullName,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    email,
+                    style: const TextStyle(color: AppTheme.onSurfaceVariant),
+                  ),
+                  const SizedBox(height: 32),
+
+                  // Stats Grid
+                  Row(
+                    children: [
+                      Expanded(child: _buildStatCard('12', 'Orders')),
+                      const SizedBox(width: 16),
+                      Expanded(child: _buildStatCard('2.4k', 'Points')),
+                    ],
+                  ),
+                  const SizedBox(height: 32),
+
+                  // Menu List
+                  _buildMenuItem(
+                    context,
+                    CupertinoIcons.cart,
+                    'My Orders',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const OrderHistoryScreen(),
+                        ),
                       );
                     },
-                  );
-                },
-                icon: const Icon(CupertinoIcons.square_arrow_right),
-                label: const Text('Logout', style: TextStyle(fontSize: 18)),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.error.withValues(alpha: 0.1),
-                  foregroundColor: AppTheme.error,
-                  elevation: 0,
-                ),
+                  ),
+
+                  const SizedBox(height: 8),
+                  _buildMenuItem(
+                    context,
+                    CupertinoIcons.heart_fill,
+                    'My Wishlist',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const WishlistScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  _buildMenuItem(
+                    context,
+                    CupertinoIcons.ticket_fill,
+                    'Promos & Offers',
+                    hasBadge: true,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const PromosScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  _buildMenuItem(
+                    context,
+                    CupertinoIcons.bell_solid,
+                    'Notifications',
+                    hasBadge: true,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const NotificationsScreen(),
+                        ),
+                      );
+                    },
+                  ),
+
+
+                  const SizedBox(height: 48),
+
+                  // Logout
+                  SizedBox(
+                    width: double.infinity,
+                    height: 56,
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: const Text('Logout'),
+                              content: const Text(
+                                'Are you sure you want to logout?',
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: const Text('Cancel'),
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.pop(context); // Close dialog
+                                    authProvider.logout();
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          'Successfully logged out.',
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  child: const Text(
+                                    'Logout',
+                                    style: TextStyle(color: AppTheme.error),
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      },
+                      icon: const Icon(CupertinoIcons.square_arrow_right),
+                      label: const Text(
+                        'Logout',
+                        style: TextStyle(fontSize: 18),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.surfaceContainerLowest,
+                        foregroundColor: AppTheme.error,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          side: const BorderSide(color: AppTheme.error, width: 1),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Version 2.4.0 (OganiBuild)',
+                    style: TextStyle(
+                      color: AppTheme.outlineVariant,
+                      fontSize: 12,
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                ],
               ),
             ),
-            const SizedBox(height: 16),
-            Text('Version 2.4.0 (OganiBuild)', style: TextStyle(color: AppTheme.outlineVariant, fontSize: 12)),
-            const SizedBox(height: 32),
-          ],
-        ),
-      ),
     );
   }
 
@@ -197,32 +347,45 @@ class ProfileScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppTheme.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.outlineVariant.withValues(alpha: 0.5), width: 1),
+        border: Border.all(
+          color: AppTheme.outlineVariant,
+          width: 1,
+        ),
       ),
       child: Column(
         children: [
-          Text(value, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppTheme.primary)),
-          Text(label, style: TextStyle(color: AppTheme.onSurfaceVariant, fontSize: 14)),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: AppTheme.primary,
+            ),
+          ),
+          Text(
+            label,
+            style: TextStyle(color: AppTheme.onSurfaceVariant, fontSize: 14),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildMenuItem(BuildContext context, IconData icon, String label, {bool hasBadge = false, VoidCallback? onTap}) {
+  Widget _buildMenuItem(
+    BuildContext context,
+    IconData icon,
+    String label, {
+    bool hasBadge = false,
+    VoidCallback? onTap,
+  }) {
     return Container(
       decoration: BoxDecoration(
         color: AppTheme.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.outlineVariant, width: 1.0),
       ),
       child: ListTile(
-        leading: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: AppTheme.primaryContainer.withValues(alpha: 0.1),
-            shape: BoxShape.circle,
-          ),
-          child: Icon(icon, color: AppTheme.primary),
-        ),
+        leading: Icon(icon, color: AppTheme.primary),
         title: Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,

@@ -9,12 +9,17 @@ class Promo {
   final double discountValue;
   final String bannerImageUrl;
 
+  final String promoCode;
+  final String expirationDate;
+
   Promo({
     required this.id,
     required this.title,
     required this.description,
     required this.discountValue,
     required this.bannerImageUrl,
+    required this.promoCode,
+    required this.expirationDate,
   });
 
   factory Promo.fromJson(Map<String, dynamic> json) {
@@ -24,6 +29,8 @@ class Promo {
       description: json['description'] ?? '',
       discountValue: json['discountValue'] != null ? (json['discountValue'] as num).toDouble() : 0.0,
       bannerImageUrl: json['bannerImageUrl'] ?? 'https://via.placeholder.com/600x200',
+      promoCode: json['promoCode'] ?? 'CODE',
+      expirationDate: json['expirationDate'] ?? 'Limited Time',
     );
   }
 }

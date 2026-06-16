@@ -24,6 +24,16 @@ public class NotificationService {
         return notificationRepository.save(notification);
     }
 
+    public void createNotification(com.ogani.api.model.User user, String title, String message, String type) {
+        Notification notification = Notification.builder()
+                .user(user)
+                .title(title)
+                .message(message)
+                .type(type)
+                .build();
+        notificationRepository.save(notification);
+    }
+
     public void deleteNotification(Integer id) {
         notificationRepository.deleteById(id);
     }

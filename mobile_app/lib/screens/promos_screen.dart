@@ -2,10 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
+import '../services/promo_service.dart';
 
-class PromosScreen extends StatelessWidget {
+class PromosScreen extends StatefulWidget {
   const PromosScreen({super.key});
+
+  @override
+  State<PromosScreen> createState() => _PromosScreenState();
+}
+
+class _PromosScreenState extends State<PromosScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<PromoService>(context, listen: false).fetchPromos();
+    });
+  }
 
   void _copyToClipboard(BuildContext context, String code) {
     Clipboard.setData(ClipboardData(text: code));
@@ -22,101 +37,72 @@ class PromosScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppTheme.surface,
       appBar: AppBar(
-        title: const Text('Ogani', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text('Promos', style: TextStyle(fontWeight: FontWeight.bold)),
         leading: IconButton(
-          icon: const Icon(CupertinoIcons.bars),
-          onPressed: () {},
+          icon: const Icon(CupertinoIcons.back),
+          onPressed: () => Navigator.pop(context),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(CupertinoIcons.search),
-            onPressed: () {},
-          ),
-        ],
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Promos & Coupons', style: Theme.of(context).textTheme.headlineMedium),
-              const SizedBox(height: 8),
-              Text('Discover fresh savings on organic goods. Apply these codes at checkout.', style: TextStyle(color: AppTheme.onSurfaceVariant)),
-              const SizedBox(height: 24),
-              
-              // Filter Chips
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    _buildFilterChip('All Offers', true),
-                    _buildFilterChip('Daily Deals', false),
-                    _buildFilterChip('Exclusive', false),
-                    _buildFilterChip('Seasonal', false),
-                  ],
-                ),
+      body: Consumer<PromoService>(
+        builder: (context, promoService, child) {
+          if (promoService.isLoading) {
+            return const Center(child: CircularProgressIndicator(color: AppTheme.primary));
+          }
+
+          if (promoService.promos.isEmpty) {
+            return const Center(child: Text('No promos available at the moment.'));
+          }
+
+          return SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Promos & Coupons', style: Theme.of(context).textTheme.headlineMedium),
+                  const SizedBox(height: 8),
+                  Text('Discover fresh savings on organic goods. Apply these codes at checkout.', style: TextStyle(color: AppTheme.onSurfaceVariant)),
+                  const SizedBox(height: 24),
+                  
+                  ...promoService.promos.map((promo) {
+                    bool isFeatured = promo == promoService.promos.first;
+                    
+                    if (isFeatured) {
+                      return Column(
+                        children: [
+                           _buildFeaturedCoupon(context, promo),
+                           const SizedBox(height: 16),
+                        ]
+                      );
+                    }
+                    return Column(
+                      children: [
+                        _buildStandardCoupon(
+                          context,
+                          icon: CupertinoIcons.star_circle_fill,
+                          type: 'Special Offer',
+                          title: promo.title,
+                          desc: promo.description,
+                          code: promo.promoCode,
+                          expiry: 'Expires: ${promo.expirationDate.split('T').first}',
+                          isPrimary: true,
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+                    );
+                  }),
+                  
+                  const SizedBox(height: 80), // Bottom nav space
+                ],
               ),
-              const SizedBox(height: 24),
-              
-              // Featured Coupon
-              _buildFeaturedCoupon(context),
-              const SizedBox(height: 16),
-              
-              // Standard Coupons
-              _buildStandardCoupon(
-                context,
-                icon: Icons.local_cafe,
-                type: 'Daily Deals',
-                title: 'Buy 1 Get 1 Free',
-                desc: 'Artisan organic coffee beans. Select roasts only.',
-                code: 'BOGOBEANS',
-                expiry: 'Expires Today, 11:59 PM',
-                isPrimary: false,
-              ),
-              const SizedBox(height: 16),
-              _buildStandardCoupon(
-                context,
-                icon: CupertinoIcons.star_circle_fill,
-                type: 'Exclusive',
-                title: '\$10 Off First Order',
-                desc: 'Welcome to Ogani! Enjoy a discount on your first delivery.',
-                code: 'WELCOME10',
-                expiry: 'Valid for new users only',
-                isPrimary: true,
-              ),
-              
-              const SizedBox(height: 80), // Bottom nav space
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
     );
   }
 
-  Widget _buildFilterChip(String label, bool isSelected) {
-    return Padding(
-      padding: const EdgeInsets.only(right: 8.0),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected ? AppTheme.primaryContainer.withValues(alpha: 0.1) : AppTheme.surfaceContainerLowest,
-          border: Border.all(color: isSelected ? AppTheme.primaryContainer.withValues(alpha: 0.5) : AppTheme.outlineVariant),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: isSelected ? AppTheme.primaryContainer : AppTheme.onSurfaceVariant,
-            fontWeight: FontWeight.w600,
-            fontSize: 12,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFeaturedCoupon(BuildContext context) {
+  Widget _buildFeaturedCoupon(BuildContext context, Promo promo) {
     return Container(
       decoration: BoxDecoration(
         color: AppTheme.surfaceContainerLowest,
@@ -137,10 +123,16 @@ class PromosScreen extends StatelessWidget {
               ClipRRect(
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
                 child: CachedNetworkImage(
-                  imageUrl: 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=600&h=200',
+                  imageUrl: promo.bannerImageUrl,
                   height: 180,
                   width: double.infinity,
                   fit: BoxFit.cover,
+                  errorWidget: (context, url, error) => Container(
+                    height: 180,
+                    width: double.infinity,
+                    color: AppTheme.surfaceContainerHighest,
+                    child: const Icon(CupertinoIcons.photo),
+                  ),
                 ),
               ),
               Positioned(
@@ -166,13 +158,13 @@ class PromosScreen extends StatelessWidget {
                   children: [
                     const Icon(CupertinoIcons.leaf_arrow_circlepath, size: 16, color: AppTheme.primary),
                     const SizedBox(width: 4),
-                    Text('Seasonal Harvest', style: TextStyle(color: AppTheme.primary, fontSize: 12, fontWeight: FontWeight.bold)),
+                    Text('Special Harvest', style: TextStyle(color: AppTheme.primary, fontSize: 12, fontWeight: FontWeight.bold)),
                   ],
                 ),
                 const SizedBox(height: 8),
-                const Text('20% Off Fresh Greens', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                Text(promo.title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
-                Text('Stock up on locally sourced spinach, kale, and mixed greens. Valid for orders over \$30.', style: TextStyle(color: AppTheme.onSurfaceVariant, fontSize: 14)),
+                Text(promo.description, style: TextStyle(color: AppTheme.onSurfaceVariant, fontSize: 14)),
                 const SizedBox(height: 16),
                 const Divider(height: 32, color: Colors.transparent), // Space for dashed line representation
                 Row(
@@ -182,11 +174,11 @@ class PromosScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text('Code', style: TextStyle(color: AppTheme.outline, fontSize: 12)),
-                        const Text('FRESH20', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, letterSpacing: 2)),
+                        Text(promo.promoCode, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, letterSpacing: 2)),
                       ],
                     ),
                     ElevatedButton.icon(
-                      onPressed: () => _copyToClipboard(context, 'FRESH20'),
+                      onPressed: () => _copyToClipboard(context, promo.promoCode),
                       icon: const Icon(CupertinoIcons.doc_on_clipboard, size: 16),
                       label: const Text('Copy'),
                     ),
@@ -255,7 +247,6 @@ class PromosScreen extends StatelessWidget {
             child: ElevatedButton(
               onPressed: () {
                 _copyToClipboard(context, code);
-                // Also navigate to Cart? Or Home?
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: isPrimary ? AppTheme.primary : Colors.transparent,

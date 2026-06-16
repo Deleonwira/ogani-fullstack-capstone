@@ -9,6 +9,7 @@ import '../models/cart_item.dart';
 import '../providers/cart_provider.dart';
 import '../providers/auth_provider.dart';
 import 'auth/login_screen.dart';
+import '../services/wishlist_service.dart';
 
 class ProductDetailScreen extends StatelessWidget {
   final Product product;
@@ -46,17 +47,31 @@ class ProductDetailScreen extends StatelessWidget {
                     color: Colors.white.withValues(alpha: 0.8),
                     shape: BoxShape.circle,
                   ),
-                  child: IconButton(
-                    icon: const Icon(CupertinoIcons.heart, color: AppTheme.onSurface),
-                    onPressed: () {
-                      final auth = Provider.of<AuthProvider>(context, listen: false);
-                      if (!auth.isAuthenticated) {
-                        Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
-                        return;
-                      }
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => const WishlistScreen()));
+                  child: Consumer<WishlistService>(
+                    builder: (context, wishlistService, child) {
+                      final isWishlisted = wishlistService.wishlistItems.any((item) => item.id == product.id);
+                      return IconButton(
+                        icon: Icon(
+                          isWishlisted ? CupertinoIcons.heart_fill : CupertinoIcons.heart,
+                          color: isWishlisted ? Colors.red : AppTheme.onSurface,
+                        ),
+                        onPressed: () {
+                          final auth = Provider.of<AuthProvider>(context, listen: false);
+                          if (!auth.isAuthenticated) {
+                            Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
+                            return;
+                          }
+                          if (isWishlisted) {
+                            wishlistService.removeFromWishlist(product.id);
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${product.name} removed from wishlist')));
+                          } else {
+                            wishlistService.addToWishlist(product.id);
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${product.name} added to wishlist')));
+                          }
+                        },
+                        iconSize: 20,
+                      );
                     },
-                    iconSize: 20,
                   ),
                 ),
               ),

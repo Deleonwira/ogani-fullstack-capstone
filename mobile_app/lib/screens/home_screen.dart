@@ -11,8 +11,12 @@ import '../main.dart'; // For AppState
 import '../services/product_service.dart';
 import '../services/promo_service.dart';
 import '../providers/auth_provider.dart';
+import '../services/category_service.dart';
+import '../services/wishlist_service.dart';
 import 'product_detail_screen.dart';
+import 'category_products_screen.dart';
 import 'auth/login_screen.dart';
+import 'notifications_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -34,7 +38,7 @@ class HomeScreen extends StatelessWidget {
                 children: [
                   Padding(
                     padding: const EdgeInsets.only(left: 8.0),
-                    child: Image.asset('assets/icons/logo_ogani.png', height: 32, width: 32, fit: BoxFit.contain,
+                    child: Image.asset('assets/icons/app-logo.png', height: 48, width: 48, fit: BoxFit.contain,
                       errorBuilder: (context, error, stackTrace) => const Icon(CupertinoIcons.cart_fill, color: AppTheme.primary, size: 28),
                     ),
                   ),
@@ -45,10 +49,55 @@ class HomeScreen extends StatelessWidget {
                           fontWeight: FontWeight.bold,
                         ),
                   ),
-                  const CircleAvatar(
-                    backgroundImage: CachedNetworkImageProvider(
-                        'https://i.pravatar.cc/150?img=11'),
-                    radius: 16,
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(CupertinoIcons.bell, color: AppTheme.primary),
+                        onPressed: () {
+                          Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsScreen()));
+                        },
+                      ),
+                      PopupMenuButton<String>(
+                        offset: const Offset(0, 45),
+                        padding: EdgeInsets.zero,
+                        icon: Consumer<AuthProvider>(
+                          builder: (context, auth, child) => CircleAvatar(
+                            backgroundImage: CachedNetworkImageProvider(
+                                auth.user?['avatarUrl'] ?? 'https://i.pravatar.cc/150?img=11'),
+                            radius: 16,
+                          ),
+                        ),
+                        onSelected: (value) {
+                          if (value == 'profile') {
+                            Provider.of<AppState>(context, listen: false).setTabIndex(3);
+                          } else if (value == 'logout') {
+                            Provider.of<AuthProvider>(context, listen: false).logout();
+                          }
+                        },
+                        itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                          const PopupMenuItem<String>(
+                            value: 'profile',
+                            child: Row(
+                              children: [
+                                Icon(CupertinoIcons.person, size: 20),
+                                SizedBox(width: 12),
+                                Text('Profile'),
+                              ],
+                            ),
+                          ),
+                          const PopupMenuItem<String>(
+                            value: 'logout',
+                            child: Row(
+                              children: [
+                                Icon(CupertinoIcons.square_arrow_right, size: 20),
+                                SizedBox(width: 12),
+                                Text('Logout'),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -61,8 +110,8 @@ class HomeScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: const [
                     _SearchField(),
-                    _CategoriesScroll(),
                     _SpecialOffersCarousel(),
+                    _CategoriesScroll(),
                     _PopularProductsGrid(),
                   ],
                 ),
@@ -97,70 +146,137 @@ class _CategoriesScroll extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Categories', style: Theme.of(context).textTheme.headlineMedium),
-                TextButton(
-                  onPressed: () {
-                    // Navigate to categories tab
-                    Provider.of<AppState>(context, listen: false).setTabIndex(1);
-                  },
-                  child: const Text('View All', style: TextStyle(color: AppTheme.primary, fontWeight: FontWeight.bold)),
+    return Consumer<CategoryService>(
+      builder: (context, categoryService, child) {
+        if (categoryService.isLoading) {
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 32.0),
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        final categories = categoryService.categories;
+        if (categories.isEmpty) {
+          return const SizedBox.shrink();
+        }
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Shop by Category', style: Theme.of(context).textTheme.headlineMedium),
+                    TextButton(
+                      onPressed: () {
+                        // Navigate to categories tab
+                        Provider.of<AppState>(context, listen: false).setTabIndex(1);
+                      },
+                      child: const Text('View All', style: TextStyle(color: AppTheme.primary, fontWeight: FontWeight.bold)),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(height: 8),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Wrap(
+                  spacing: 16.0,
+                  runSpacing: 16.0,
+                  children: [
+                    ...categories.map((category) {
+                      return _buildCategoryCard(context, category.name, category.image);
+                    }),
+                    _buildAllCategoriesCard(context),
+                  ],
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 8),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Row(
-              children: [
-                _buildCategoryItem(context, 'Fruits', Icons.apple, true),
-                _buildCategoryItem(context, 'Vegetables', CupertinoIcons.leaf_arrow_circlepath, false),
-                _buildCategoryItem(context, 'Dairy', Icons.egg_outlined, false),
-                _buildCategoryItem(context, 'Meat', Icons.set_meal_outlined, false),
-                _buildCategoryItem(context, 'Bakery', Icons.bakery_dining_outlined, false),
-              ],
-            ),
+        );
+      },
+    );
+  }
+
+  Widget _buildCategoryCard(BuildContext context, String title, String imgUrl) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => CategoryProductsScreen(categoryName: title),
           ),
-        ],
+        );
+      },
+      child: SizedBox(
+        width: 80,
+        child: Column(
+          children: [
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                color: AppTheme.surfaceContainerLowest,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppTheme.outlineVariant, width: 1.0),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(15), // Slightly smaller than container to fit inside border
+                child: CachedNetworkImage(
+                  imageUrl: imgUrl,
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                  height: double.infinity,
+                  errorWidget: (context, url, error) => const Icon(Icons.error),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildCategoryItem(BuildContext context, String title, IconData icon, bool isActive) {
-    return Padding(
-      padding: const EdgeInsets.only(right: 16.0),
-      child: GestureDetector(
-        onTap: () {
-          Provider.of<AppState>(context, listen: false).setTabIndex(1);
-        },
+  Widget _buildAllCategoriesCard(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        Provider.of<AppState>(context, listen: false).setTabIndex(1);
+      },
+      child: SizedBox(
+        width: 80,
         child: Column(
           children: [
             Container(
-              width: 56,
-              height: 56,
+              width: 80,
+              height: 80,
               decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: isActive ? AppTheme.primary : AppTheme.outline.withValues(alpha: 0.3),
-                  width: 1.5,
-                ),
-                color: isActive ? AppTheme.primary.withValues(alpha: 0.1) : Colors.transparent,
+                color: AppTheme.surfaceContainerLow,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppTheme.outlineVariant, width: 1.0),
               ),
-              child: Icon(icon, size: 24, color: isActive ? AppTheme.primary : AppTheme.onSurfaceVariant),
+              child: const Center(
+                child: Icon(CupertinoIcons.square_grid_2x2, color: AppTheme.primary, size: 32),
+              ),
             ),
             const SizedBox(height: 8),
-            Text(title, style: TextStyle(fontSize: 12, fontWeight: isActive ? FontWeight.bold : FontWeight.w500, color: isActive ? AppTheme.primary : AppTheme.onSurface)),
+            const Text(
+              'All Categories',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
+              maxLines: 2,
+            ),
           ],
         ),
       ),
@@ -398,6 +514,41 @@ class _PopularProductsGrid extends StatelessWidget {
                       child: const Text('Best Seller', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white)),
                     ),
                   ),
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: Consumer<WishlistService>(
+                    builder: (context, wishlistService, child) {
+                      final isWishlisted = wishlistService.wishlistItems.any((item) => item.id == product.id);
+                      return GestureDetector(
+                        onTap: () {
+                          final auth = Provider.of<AuthProvider>(context, listen: false);
+                          if (!auth.isAuthenticated) {
+                            Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
+                            return;
+                          }
+                          if (isWishlisted) {
+                            wishlistService.removeFromWishlist(product.id);
+                          } else {
+                            wishlistService.addToWishlist(product.id);
+                          }
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.8),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            isWishlisted ? CupertinoIcons.heart_fill : CupertinoIcons.heart,
+                            color: isWishlisted ? Colors.red : AppTheme.onSurfaceVariant,
+                            size: 16,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
               ],
             ),
           ),

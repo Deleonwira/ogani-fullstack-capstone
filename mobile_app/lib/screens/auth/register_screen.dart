@@ -63,6 +63,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                Image.asset('assets/icons/app-logo.png', height: 64, width: 64),
+                const SizedBox(height: 16),
                 const Text(
                   'Join Ogani',
                   style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: AppTheme.primary),

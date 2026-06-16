@@ -64,6 +64,7 @@ public class UserService {
             user.setBirthDate(request.getBirthDate());
             user.setAge(java.time.Period.between(request.getBirthDate(), java.time.LocalDate.now()).getYears());
         }
+        if (request.getAvatarUrl() != null) user.setAvatarUrl(request.getAvatarUrl());
 
         return userRepository.save(user);
     }

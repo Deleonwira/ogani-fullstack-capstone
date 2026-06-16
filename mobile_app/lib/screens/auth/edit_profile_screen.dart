@@ -17,6 +17,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late TextEditingController _nameController;
   late TextEditingController _phoneController;
   late TextEditingController _addressController;
+  late TextEditingController _avatarUrlController;
   bool _isLoading = false;
 
   @override
@@ -26,6 +27,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _nameController = TextEditingController(text: user?['fullName'] ?? '');
     _phoneController = TextEditingController(text: user?['phoneNumber'] ?? '');
     _addressController = TextEditingController(text: user?['address'] ?? '');
+    _avatarUrlController = TextEditingController(text: user?['avatarUrl'] ?? '');
   }
 
   Future<void> _updateProfile() async {
@@ -40,6 +42,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         'fullName': _nameController.text.trim(),
         'phoneNumber': _phoneController.text.trim(),
         'address': _addressController.text.trim(),
+        'avatarUrl': _avatarUrlController.text.trim(),
       });
 
       if (mounted) {
@@ -70,6 +73,19 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           key: _formKey,
           child: Column(
             children: [
+              ValueListenableBuilder(
+                valueListenable: _avatarUrlController,
+                builder: (context, value, child) {
+                  return CircleAvatar(
+                    radius: 50,
+                    backgroundImage: _avatarUrlController.text.isNotEmpty
+                        ? NetworkImage(_avatarUrlController.text)
+                        : const NetworkImage('https://i.pravatar.cc/150?img=11'),
+                    onBackgroundImageError: (e, s) => const Icon(CupertinoIcons.person),
+                  );
+                },
+              ),
+              const SizedBox(height: 24),
               TextFormField(
                 controller: _nameController,
                 decoration: const InputDecoration(labelText: 'Full Name', border: OutlineInputBorder()),
@@ -85,6 +101,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 controller: _addressController,
                 maxLines: 3,
                 decoration: const InputDecoration(labelText: 'Address', border: OutlineInputBorder()),
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _avatarUrlController,
+                decoration: const InputDecoration(labelText: 'Profile Image URL', border: OutlineInputBorder()),
               ),
               const SizedBox(height: 32),
               SizedBox(
