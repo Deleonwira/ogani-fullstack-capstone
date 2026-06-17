@@ -36,7 +36,7 @@ $routes->get('/admin/promos/delete/(:num)', 'Admin::deletePromo/$1');
 $routes->get('/admin/reviews/delete/(:num)', 'Admin::deleteReview/$1');
 
 $routes->get('/admin/users/delete/(:num)', 'Admin::deleteUser/$1');
-$routes->post('/admin/users/role/(:num)', 'Admin::updateUserRole/$1');
+$routes->post('/admin/users/update/(:num)', 'Admin::updateUserByAdmin/$1');
 
 $routes->post('/admin/orders/status/(:num)', 'Admin::updateOrderStatus/$1');
 $routes->put('/admin/settings/password', 'Admin::updatePassword');

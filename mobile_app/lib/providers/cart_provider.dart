@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
+import 'dart:math';
 import '../models/cart_item.dart';
+import '../services/promo_service.dart';
 
 class CartProvider extends ChangeNotifier {
   final Map<String, CartItem> _items = {};
+  Promo? _appliedPromo;
+
+  Promo? get appliedPromo => _appliedPromo;
 
   Map<String, CartItem> get items {
     return {..._items};
@@ -26,8 +31,34 @@ class CartProvider extends ChangeNotifier {
     return subtotalAmount > 50.0 ? 0.0 : 2.00;
   }
 
+  double get discountAmount => _appliedPromo?.discountValue ?? 0.0;
+
   double get totalAmount {
-    return subtotalAmount + deliveryFee;
+    return max(0.0, subtotalAmount - discountAmount) + deliveryFee;
+  }
+
+  Future<String?> applyPromoCode(String code) async {
+    if (code.isEmpty) return 'Please enter a promo code';
+    
+    final promoService = PromoService();
+    final promo = await promoService.validatePromoCode(code);
+    
+    if (promo == null) {
+      return 'Invalid promo code';
+    }
+    
+    if (subtotalAmount < promo.minimumSpend) {
+      return 'Minimum spend of \$${promo.minimumSpend.toStringAsFixed(2)} required for this promo';
+    }
+    
+    _appliedPromo = promo;
+    notifyListeners();
+    return null; // Success
+  }
+
+  void removePromoCode() {
+    _appliedPromo = null;
+    notifyListeners();
   }
 
   void addItem(Product product) {
@@ -92,6 +123,7 @@ class CartProvider extends ChangeNotifier {
 
   void clear() {
     _items.clear();
+    _appliedPromo = null;
     notifyListeners();
   }
 }

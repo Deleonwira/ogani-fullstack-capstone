@@ -26,6 +26,7 @@ public class DatabaseSeeder implements CommandLineRunner {
     private final ReviewRepository reviewRepository;
     private final PaymentMethodRepository paymentMethodRepository;
     private final UserAddressRepository userAddressRepository;
+    private final NotificationRepository notificationRepository;
     private final PasswordEncoder passwordEncoder;
     private final EntityManager entityManager;
 
@@ -39,6 +40,7 @@ public class DatabaseSeeder implements CommandLineRunner {
         if (paymentMethodRepository.count() == 0) seedPaymentMethods();
         if (orderRepository.count() == 0) seedOrdersAndReviews();
         if (reviewRepository.count() < 10) seedReviews();
+        if (notificationRepository.count() == 0) seedNotifications();
     }
 
     private void seedUsers() {
@@ -127,5 +129,50 @@ public class DatabaseSeeder implements CommandLineRunner {
                 .build();
             reviewRepository.save(r);
         }
+    }
+
+    private void seedNotifications() {
+        List<User> users = userRepository.findAll();
+        if (users.size() < 2) return;
+        
+        User customer1 = users.get(1);
+        User customer2 = users.get(2);
+        
+        List<Notification> notifs = Arrays.asList(
+            Notification.builder()
+                .user(customer1)
+                .title("Welcome to Ogani!")
+                .message("We are glad to have you here. Check out our fresh products.")
+                .type("INFO")
+                .isRead(false)
+                .timestamp(LocalDateTime.now().minusDays(1))
+                .build(),
+            Notification.builder()
+                .user(customer1)
+                .title("Promo Alert: FRESH20")
+                .message("Use promo code FRESH20 for Rp 20.000 off your next purchase!")
+                .type("PROMO")
+                .isRead(false)
+                .timestamp(LocalDateTime.now().minusHours(5))
+                .build(),
+            Notification.builder()
+                .user(customer2)
+                .title("Order Completed")
+                .message("Your order has been delivered successfully. Enjoy your fresh produce!")
+                .type("ORDER")
+                .isRead(true)
+                .timestamp(LocalDateTime.now().minusDays(2))
+                .build(),
+            Notification.builder()
+                .user(customer2)
+                .title("Special Discount")
+                .message("You have earned a special discount on meat products.")
+                .type("PROMO")
+                .isRead(false)
+                .timestamp(LocalDateTime.now().minusHours(2))
+                .build()
+        );
+        
+        notificationRepository.saveAll(notifs);
     }
 }

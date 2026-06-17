@@ -23,6 +23,8 @@ class ProfileScreen extends StatelessWidget {
     final String fullName = user?['fullName'] ?? 'John Doe';
     final String email = user?['email'] ?? 'john.doe@ogani.com';
     final String avatarUrl = user?['avatarUrl'] ?? 'https://i.pravatar.cc/150?img=11';
+    final String totalOrders = user?['totalOrders']?.toString() ?? '0';
+    final String totalPoints = user?['totalPoints']?.toString() ?? '0';
 
     return Scaffold(
       backgroundColor: AppTheme.surface,
@@ -45,14 +47,7 @@ class ProfileScreen extends StatelessWidget {
             const Text('Ogani', style: TextStyle(fontWeight: FontWeight.bold)),
           ],
         ),
-        leading: IconButton(
-          icon: const Icon(CupertinoIcons.search),
-          onPressed: () {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(const SnackBar(content: Text('Opening Search...')));
-          },
-        ),
+
         actions: [
           IconButton(
             icon: const Icon(CupertinoIcons.bell, color: AppTheme.primary),
@@ -199,9 +194,9 @@ class ProfileScreen extends StatelessWidget {
                   // Stats Grid
                   Row(
                     children: [
-                      Expanded(child: _buildStatCard('12', 'Orders')),
+                      Expanded(child: _buildStatCard(totalOrders, 'Orders')),
                       const SizedBox(width: 16),
-                      Expanded(child: _buildStatCard('2.4k', 'Points')),
+                      Expanded(child: _buildStatCard(totalPoints, 'Points')),
                     ],
                   ),
                   const SizedBox(height: 32),
@@ -334,7 +329,7 @@ class ProfileScreen extends StatelessWidget {
                       fontSize: 12,
                     ),
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 120), // Extra padding for bottom nav bar
                 ],
               ),
             ),

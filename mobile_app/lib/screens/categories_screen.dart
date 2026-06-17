@@ -49,10 +49,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
             const Text('Ogani', style: TextStyle(fontWeight: FontWeight.bold)),
           ],
         ),
-        leading: IconButton(
-          icon: const Icon(CupertinoIcons.bars),
-          onPressed: () {},
-        ),
+
         actions: [
           IconButton(
             icon: const Icon(CupertinoIcons.bell, color: AppTheme.primary),
@@ -144,7 +141,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                           crossAxisCount: 2,
                           mainAxisSpacing: 16,
                           crossAxisSpacing: 16,
-                          childAspectRatio: 0.85,
+                          childAspectRatio: 0.75,
                         ),
                     itemBuilder: (context, index) {
                       final category = categoryService.categories[index];
@@ -240,6 +237,9 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                 children: [
                   Text(
                     title,
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
@@ -247,6 +247,9 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                   ),
                   Text(
                     subtitle,
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(color: AppTheme.outline, fontSize: 12),
                   ),
                 ],

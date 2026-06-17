@@ -39,7 +39,7 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<bool> login(String email, String password) async {
+  Future<String?> login(String email, String password) async {
     try {
       final response = await ApiClient.post('/auth/login', {
         'email': email,
@@ -52,6 +52,10 @@ class AuthProvider extends ChangeNotifier {
           final token = data['data']['token'];
           final userMap = data['data']['user'];
           
+          if (userMap['role'] != 'CUSTOMER') {
+            return 'Access denied. Only customers can login from the mobile app.';
+          }
+          
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('jwt_token', token);
           await prefs.setString('user_data', jsonEncode(userMap));
@@ -59,13 +63,14 @@ class AuthProvider extends ChangeNotifier {
           _user = userMap;
           _isAuthenticated = true;
           notifyListeners();
-          return true;
+          return null; // success
         }
+        return data['message'] ?? 'Login failed. Please check your credentials.';
       }
-      return false;
+      return 'Server error. Please try again later.';
     } catch (e) {
       debugPrint('Login error: $e');
-      return false;
+      return 'Network error. Please check your connection.';
     }
   }
 
