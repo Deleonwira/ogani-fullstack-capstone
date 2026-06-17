@@ -247,11 +247,18 @@ class Admin extends BaseController
         return redirect()->to('/admin/users');
     }
 
-    public function updateUserRole($id)
+    public function updateUserByAdmin($id)
     {
         $role = $this->request->getPost('role');
-        $this->putApi('users/' . $id . '/role', ['role' => $role]);
-        return redirect()->to('/admin/users');
+        $password = $this->request->getPost('password');
+
+        $payload = ['role' => $role];
+        if (!empty($password)) {
+            $payload['password'] = $password;
+        }
+
+        $this->putApi('users/' . $id . '/admin-update', $payload);
+        return redirect()->to('/admin/users')->with('success', 'User updated successfully');
     }
 
     public function updateOrderStatus($id)

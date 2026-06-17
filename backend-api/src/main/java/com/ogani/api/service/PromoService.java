@@ -22,6 +22,11 @@ public class PromoService {
                 .orElseThrow(() -> new ResourceNotFoundException("Promo not found with id: " + id));
     }
 
+    public Promo getPromoByCode(String promoCode) {
+        return promoRepository.findByPromoCode(promoCode)
+                .orElseThrow(() -> new ResourceNotFoundException("Promo not found with code: " + promoCode));
+    }
+
     public Promo createPromo(Promo promo) {
         return promoRepository.save(promo);
     }

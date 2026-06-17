@@ -125,22 +125,29 @@
         }
     </style>
 </head>
-<body class="bg-background text-on-background min-h-screen font-body-md text-body-md overflow-x-hidden selection:bg-primary-container selection:text-on-primary-container">
+<body x-data="{ sidebarOpen: false }" class="bg-background text-on-background min-h-screen font-body-md text-body-md overflow-x-hidden selection:bg-primary-container selection:text-on-primary-container">
+<!-- Mobile Sidebar Overlay -->
+<div x-show="sidebarOpen" x-transition.opacity @click="sidebarOpen = false" class="fixed inset-0 bg-black/50 z-40 lg:hidden" style="display: none;"></div>
 <!-- SideNavBar -->
-<nav aria-label="Sidebar Navigation" class="fixed left-0 top-0 h-screen w-[260px] bg-surface-container-lowest border-r border-outline-variant shadow-sm z-50 flex flex-col py-gutter px-4">
+<nav aria-label="Sidebar Navigation" :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'" class="fixed left-0 top-0 h-screen w-[260px] bg-surface-container-lowest border-r border-outline-variant shadow-sm z-50 flex flex-col py-gutter px-4 transition-transform duration-300">
 <!-- Header -->
-<div class="mb-8 px-4 flex items-center gap-3">
-<div class="w-10 h-10 flex items-center justify-center text-primary flex-shrink-0">
-    <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-full">
-        <path d="M 15 35 h 15 v 25 q 0 10 10 10 h 30 q 15 0 15 -15 v -5 q 0 -15 -15 -15 h -25" stroke="currentColor" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
-        <circle cx="45" cy="88" r="8" fill="currentColor"/>
-        <circle cx="70" cy="88" r="8" fill="currentColor"/>
-    </svg>
-</div>
-<div>
-<h1 class="text-title-lg font-title-lg font-bold text-primary tracking-tight">Ogani Admin</h1>
-<p class="text-label-sm font-label-sm text-on-surface-variant">Management Portal</p>
-</div>
+<div class="mb-8 px-2 lg:px-4 flex justify-between items-center">
+    <div class="flex items-center gap-3">
+        <div class="w-10 h-10 flex items-center justify-center text-primary flex-shrink-0">
+            <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-full">
+                <path d="M 15 35 h 15 v 25 q 0 10 10 10 h 30 q 15 0 15 -15 v -5 q 0 -15 -15 -15 h -25" stroke="currentColor" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="45" cy="88" r="8" fill="currentColor"/>
+                <circle cx="70" cy="88" r="8" fill="currentColor"/>
+            </svg>
+        </div>
+        <div>
+            <h1 class="text-title-lg font-title-lg font-bold text-primary tracking-tight">Ogani Admin</h1>
+            <p class="text-label-sm font-label-sm text-on-surface-variant">Management</p>
+        </div>
+    </div>
+    <button @click="sidebarOpen = false" class="lg:hidden text-on-surface-variant hover:text-error p-1">
+        <span class="material-symbols-outlined">close</span>
+    </button>
 </div>
 <?php
 $activeClass = 'relative flex items-center gap-3 px-4 py-3 bg-secondary-container/10 text-primary font-bold rounded-lg overflow-hidden before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-[24px] before:w-1 before:bg-primary before:rounded-r-full active:scale-[0.98] transition-transform duration-200';
@@ -208,12 +215,16 @@ $active_page = $active_page ?? 'dashboard';
 </div>
 </nav>
 <!-- Main Content Wrapper -->
-<div class="ml-[260px] min-h-screen flex flex-col">
+<div class="lg:ml-[260px] min-h-screen flex flex-col transition-all duration-300">
 <!-- TopNavBar -->
-<header class="fixed top-0 right-0 h-topbar-height z-40 flex justify-between items-center w-[calc(100%-260px)] px-gutter bg-surface-container-lowest border-b border-outline-variant transition-all">
-<!-- Search (Left Aligned) -->
-<div class="flex-1 max-w-md relative" x-data="globalSearchComponent()">
-    <div class="relative group">
+<header class="fixed top-0 right-0 h-topbar-height z-30 flex justify-between items-center w-full lg:w-[calc(100%-260px)] px-4 lg:px-gutter bg-surface-container-lowest border-b border-outline-variant transition-all duration-300">
+<div class="flex items-center gap-2 flex-1">
+    <button @click="sidebarOpen = true" class="p-2 -ml-2 text-on-surface-variant hover:bg-surface-container-low rounded-lg lg:hidden focus:outline-none">
+        <span class="material-symbols-outlined">menu</span>
+    </button>
+    <!-- Search (Left Aligned) -->
+    <div class="flex-1 max-w-md relative hidden sm:block" x-data="globalSearchComponent()">
+        <div class="relative group">
         <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors">search</span>
         <input x-model="query" @input.debounce.300ms="fetchResults" @focus="open = true" @click.outside="open = false" class="w-full h-10 pl-10 pr-4 bg-surface-container-low border border-transparent rounded-full font-body-md text-body-md text-on-surface placeholder:text-outline focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all bg-opacity-50" placeholder="Search orders, customers, or products..." type="text"/>
         
@@ -242,6 +253,7 @@ $active_page = $active_page ?? 'dashboard';
             No results found for "<span x-text="query"></span>"
         </div>
     </div>
+</div>
 </div>
 <!-- Trailing Actions -->
 <div class="flex items-center gap-4 ml-auto">
@@ -294,7 +306,7 @@ $active_page = $active_page ?? 'dashboard';
 </div>
 </header>
 <!-- Page Content Canvas -->
-<main class="flex-1 pt-[calc(72px+32px)] px-container-padding pb-container-padding max-w-[1600px] mx-auto w-full">
+<main class="flex-1 pt-[calc(72px+16px)] lg:pt-[calc(72px+32px)] px-4 lg:px-container-padding pb-8 lg:pb-container-padding max-w-[1600px] mx-auto w-full overflow-x-hidden">
 <?= $this->renderSection('content') ?>
 </main>
 </div>

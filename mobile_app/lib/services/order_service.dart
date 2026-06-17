@@ -18,6 +18,7 @@ class OrderService extends ChangeNotifier {
     required String shippingAddress,
     required String receiverName,
     required String receiverPhone,
+    String? promoCode,
   }) async {
     _isLoading = true;
     notifyListeners();
@@ -32,6 +33,7 @@ class OrderService extends ChangeNotifier {
         'receiverName': receiverName,
         'receiverPhone': receiverPhone,
         'orderStatus': 'pending',
+        if (promoCode != null) 'promoCode': promoCode,
         'invoiceCode': 'INV-${DateTime.now().millisecondsSinceEpoch}',
         'orderDetails': items.map((item) => {
           'product': {'productId': int.parse(item.product.id)},

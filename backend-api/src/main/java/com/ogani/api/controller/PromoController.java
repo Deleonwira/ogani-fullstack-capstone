@@ -33,6 +33,12 @@ public class PromoController {
         return ResponseEntity.ok(ApiResponse.success(promo));
     }
 
+    @GetMapping("/code/{code}")
+    public ResponseEntity<ApiResponse<Promo>> getPromoByCode(@PathVariable String code) {
+        Promo promo = promoService.getPromoByCode(code);
+        return ResponseEntity.ok(ApiResponse.success(promo));
+    }
+
     @PostMapping
     public ResponseEntity<ApiResponse<Promo>> createPromo(@RequestBody Promo promo) {
         Promo createdPromo = promoService.createPromo(promo);

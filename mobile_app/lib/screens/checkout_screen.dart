@@ -19,6 +19,9 @@ class CheckoutScreen extends StatefulWidget {
 class _CheckoutScreenState extends State<CheckoutScreen> {
   int _selectedPaymentMethod = 0; // 0: Credit Card, 1: Digital Wallet, 2: Bank Transfer
 
+  final TextEditingController _promoController = TextEditingController();
+  bool _isApplyingPromo = false;
+
   // Address State
   String _addressName = 'Home Address';
   String _addressDetail = '123 Organic Lane, Fresh Garden Estate\nSan Francisco, CA 94103';
@@ -77,6 +80,27 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         );
       },
     );
+  }
+
+  @override
+  void dispose() {
+    _promoController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _applyPromo(CartProvider cart) async {
+    setState(() => _isApplyingPromo = true);
+    final error = await cart.applyPromoCode(_promoController.text.trim());
+    
+    if (!mounted) return;
+    setState(() => _isApplyingPromo = false);
+    
+    if (error != null) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error), backgroundColor: AppTheme.error));
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Promo code applied successfully!')));
+      _promoController.clear();
+    }
   }
 
   @override
@@ -215,6 +239,91 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
             const SizedBox(height: 24),
 
+            // Promo Code Section
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppTheme.surfaceContainerLowest,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.04),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(CupertinoIcons.ticket_fill, color: AppTheme.primary),
+                      const SizedBox(width: 8),
+                      Text('Promo Code', style: Theme.of(context).textTheme.headlineMedium),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  if (cart.appliedPromo != null)
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryContainer,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  cart.appliedPromo!.title,
+                                  style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87),
+                                ),
+                                Text(
+                                  '-\$${cart.appliedPromo!.discountValue.toStringAsFixed(2)} applied',
+                                  style: const TextStyle(color: AppTheme.primary, fontSize: 12),
+                                ),
+                              ],
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(CupertinoIcons.xmark_circle_fill, color: AppTheme.error),
+                            onPressed: () => cart.removePromoCode(),
+                          ),
+                        ],
+                      ),
+                    )
+                  else
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _promoController,
+                            decoration: const InputDecoration(
+                              hintText: 'Enter Promo Code',
+                              contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        ElevatedButton(
+                          onPressed: _isApplyingPromo ? null : () => _applyPromo(cart),
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                          ),
+                          child: _isApplyingPromo 
+                              ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                              : const Text('Apply'),
+                        ),
+                      ],
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+
             // Order Summary
             Container(
               padding: const EdgeInsets.all(16),
@@ -249,6 +358,16 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       Text('\$${cart.deliveryFee.toStringAsFixed(2)}', style: TextStyle(color: AppTheme.onSurfaceVariant)),
                     ],
                   ),
+                  if (cart.appliedPromo != null) ...[
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Discount (${cart.appliedPromo!.promoCode})', style: const TextStyle(color: AppTheme.primary)),
+                        Text('-\$${cart.discountAmount.toStringAsFixed(2)}', style: const TextStyle(color: AppTheme.primary, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                  ],
                   const Padding(
                     padding: EdgeInsets.symmetric(vertical: 12.0),
                     child: Divider(color: AppTheme.outlineVariant),
@@ -301,9 +420,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                 totalAmount: cart.totalAmount,
                                 subtotalAmount: cart.subtotalAmount,
                                 shippingCost: cart.deliveryFee,
-                                shippingAddress: '123 Organic Lane, San Francisco, CA 94103',
-                                receiverName: 'John Doe',
-                                receiverPhone: '+1 (555) 000-1234',
+                                shippingAddress: _addressDetail,
+                                receiverName: _addressName,
+                                receiverPhone: _addressPhone,
+                                promoCode: cart.appliedPromo?.promoCode,
                               );
 
                               if (success) {

@@ -3,6 +3,7 @@ package com.ogani.api.service;
 import com.ogani.api.exception.ResourceNotFoundException;
 import com.ogani.api.model.Order;
 import com.ogani.api.repository.OrderRepository;
+import com.ogani.api.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -13,6 +14,7 @@ import java.util.List;
 public class OrderService {
     private final OrderRepository orderRepository;
     private final NotificationService notificationService;
+    private final UserRepository userRepository;
 
     public List<Order> getAllOrders() {
         return orderRepository.findAll();
@@ -32,6 +34,15 @@ public class OrderService {
             order.getOrderDetails().forEach(detail -> detail.setOrder(order));
         }
         Order savedOrder = orderRepository.save(order);
+        
+        if (savedOrder.getUser() != null && savedOrder.getUser().getUserId() != null) {
+            com.ogani.api.model.User user = userRepository.findById(savedOrder.getUser().getUserId()).orElse(null);
+            if (user != null && savedOrder.getTotalPrice() != null) {
+                int pointsEarned = savedOrder.getTotalPrice().intValue() / 1000;
+                user.setTotalPoints((user.getTotalPoints() != null ? user.getTotalPoints() : 0) + pointsEarned);
+                userRepository.save(user);
+            }
+        }
         
         notificationService.createNotification(
             savedOrder.getUser(),

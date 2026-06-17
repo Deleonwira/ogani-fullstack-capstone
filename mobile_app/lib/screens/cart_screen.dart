@@ -42,10 +42,7 @@ class CartScreen extends StatelessWidget {
             const Text('Ogani', style: TextStyle(fontWeight: FontWeight.bold)),
           ],
         ),
-        leading: IconButton(
-          icon: const Icon(CupertinoIcons.search),
-          onPressed: () {},
-        ),
+
         actions: [
           IconButton(
             icon: const Icon(CupertinoIcons.bell, color: AppTheme.primary),

@@ -4,8 +4,21 @@ import '../theme/app_theme.dart';
 import 'package:provider/provider.dart';
 import '../services/notification_service.dart';
 
-class NotificationsScreen extends StatelessWidget {
+class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
+
+  @override
+  State<NotificationsScreen> createState() => _NotificationsScreenState();
+}
+
+class _NotificationsScreenState extends State<NotificationsScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<NotificationService>(context, listen: false).fetchNotifications();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

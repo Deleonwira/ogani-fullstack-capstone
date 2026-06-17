@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +27,17 @@ public class UserService {
         User user = getUserById(id);
         User.Role role = User.Role.valueOf(roleStr.toUpperCase());
         user.setRole(role);
+        return userRepository.save(user);
+    }
+
+    public User adminUpdateUser(Integer id, Map<String, String> payload, org.springframework.security.crypto.password.PasswordEncoder passwordEncoder) {
+        User user = getUserById(id);
+        if (payload.containsKey("role") && payload.get("role") != null) {
+            user.setRole(User.Role.valueOf(payload.get("role").toUpperCase()));
+        }
+        if (payload.containsKey("password") && payload.get("password") != null && !payload.get("password").isEmpty()) {
+            user.setPassword(passwordEncoder.encode(payload.get("password")));
+        }
         return userRepository.save(user);
     }
 

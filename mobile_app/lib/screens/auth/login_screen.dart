@@ -23,16 +23,16 @@ class _LoginScreenState extends State<LoginScreen> {
 
     setState(() => _isLoading = true);
 
-    final success = await Provider.of<AuthProvider>(context, listen: false).login(
+    final errorMessage = await Provider.of<AuthProvider>(context, listen: false).login(
       _emailController.text.trim(),
       _passwordController.text,
     );
 
     if (mounted) {
       setState(() => _isLoading = false);
-      if (!success) {
+      if (errorMessage != null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Login failed. Please check your credentials.'), backgroundColor: AppTheme.error),
+          SnackBar(content: Text(errorMessage), backgroundColor: AppTheme.error),
         );
       } else {
         if (Navigator.canPop(context)) {
@@ -104,14 +104,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 8),
                   
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton(
-                      onPressed: () {},
-                      child: const Text('Forgot Password?'),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
+
                   
                   SizedBox(
                     height: 56,

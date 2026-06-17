@@ -41,6 +41,12 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success(updatedUser));
     }
 
+    @PutMapping("/{id}/admin-update")
+    public ResponseEntity<ApiResponse<User>> adminUpdateUser(@PathVariable Integer id, @RequestBody Map<String, String> payload) {
+        User updatedUser = userService.adminUpdateUser(id, payload, passwordEncoder);
+        return ResponseEntity.ok(ApiResponse.success("User updated successfully", updatedUser));
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteUser(@PathVariable Integer id) {
         userService.deleteUser(id);

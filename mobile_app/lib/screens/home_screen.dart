@@ -184,15 +184,20 @@ class _CategoriesScroll extends StatelessWidget {
               const SizedBox(height: 8),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Wrap(
-                  spacing: 16.0,
-                  runSpacing: 16.0,
-                  children: [
-                    ...categories.map((category) {
-                      return _buildCategoryCard(context, category.name, category.image);
-                    }),
-                    _buildAllCategoriesCard(context),
-                  ],
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final cardWidth = (constraints.maxWidth - 48) / 4;
+                    return Wrap(
+                      spacing: 16.0,
+                      runSpacing: 16.0,
+                      children: [
+                        ...categories.map((category) {
+                          return _buildCategoryCard(context, category.name, category.image, cardWidth);
+                        }),
+                        _buildAllCategoriesCard(context, cardWidth),
+                      ],
+                    );
+                  }
                 ),
               ),
             ],
@@ -202,7 +207,7 @@ class _CategoriesScroll extends StatelessWidget {
     );
   }
 
-  Widget _buildCategoryCard(BuildContext context, String title, String imgUrl) {
+  Widget _buildCategoryCard(BuildContext context, String title, String imgUrl, double width) {
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -213,12 +218,12 @@ class _CategoriesScroll extends StatelessWidget {
         );
       },
       child: SizedBox(
-        width: 80,
+        width: width,
         child: Column(
           children: [
             Container(
-              width: 80,
-              height: 80,
+              width: width,
+              height: width,
               decoration: BoxDecoration(
                 color: AppTheme.surfaceContainerLowest,
                 borderRadius: BorderRadius.circular(16),
@@ -249,18 +254,18 @@ class _CategoriesScroll extends StatelessWidget {
     );
   }
 
-  Widget _buildAllCategoriesCard(BuildContext context) {
+  Widget _buildAllCategoriesCard(BuildContext context, double width) {
     return GestureDetector(
       onTap: () {
         Provider.of<AppState>(context, listen: false).setTabIndex(1);
       },
       child: SizedBox(
-        width: 80,
+        width: width,
         child: Column(
           children: [
             Container(
-              width: 80,
-              height: 80,
+              width: width,
+              height: width,
               decoration: BoxDecoration(
                 color: AppTheme.surfaceContainerLow,
                 borderRadius: BorderRadius.circular(16),
@@ -343,7 +348,7 @@ class _SpecialOffersCarouselState extends State<_SpecialOffersCarousel> {
           child: Column(
             children: [
               SizedBox(
-                height: 180,
+                height: 220,
                 child: PageView.builder(
                   controller: _pageController,
                   onPageChanged: (int page) {
@@ -388,14 +393,22 @@ class _SpecialOffersCarouselState extends State<_SpecialOffersCarousel> {
                               ),
                             ),
                             const SizedBox(height: 8),
-                            Text(
-                              promo.title,
-                              style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold, height: 1.2),
+                            Flexible(
+                              child: Text(
+                                promo.title,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold, height: 1.2),
+                              ),
                             ),
                             const SizedBox(height: 4),
-                            Text(
-                              promo.description,
-                              style: const TextStyle(color: Colors.white70, fontSize: 14),
+                            Flexible(
+                              child: Text(
+                                promo.description,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(color: Colors.white70, fontSize: 14),
+                              ),
                             ),
                           ],
                         ),
@@ -462,7 +475,7 @@ class _PopularProductsGrid extends StatelessWidget {
                     crossAxisCount: 2,
                     mainAxisSpacing: 16,
                     crossAxisSpacing: 16,
-                    childAspectRatio: 0.7,
+                    childAspectRatio: 0.6,
                   ),
                   itemBuilder: (context, index) {
                     return _buildProductCard(context, products[index]);
@@ -564,8 +577,9 @@ class _PopularProductsGrid extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         if (product.oldPrice != null)
                           Text(product.oldPrice!, style: TextStyle(decoration: TextDecoration.lineThrough, fontSize: 10, color: AppTheme.onSurfaceVariant)),
@@ -579,6 +593,8 @@ class _PopularProductsGrid extends StatelessWidget {
                         ),
                       ],
                     ),
+                    ),
+                    const SizedBox(width: 4),
                     GestureDetector(
                       onTap: () {
                         final auth = Provider.of<AuthProvider>(context, listen: false);

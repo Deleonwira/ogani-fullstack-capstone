@@ -138,7 +138,7 @@ if (!empty($users)) {
 <!-- Role Modal -->
 <div id="roleModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
     <div class="bg-surface rounded-xl shadow-lg w-full max-w-sm p-6">
-        <h3 class="text-title-lg font-title-lg mb-4 text-on-surface">Edit User Role</h3>
+        <h3 class="text-title-lg font-title-lg mb-4 text-on-surface">Edit User</h3>
         <form id="roleForm" action="" method="POST">
             <div class="mb-4">
                 <label class="block text-label-md mb-1 text-on-surface-variant">Role</label>
@@ -146,6 +146,10 @@ if (!empty($users)) {
                     <option value="ADMIN">ADMIN</option>
                     <option value="CUSTOMER">CUSTOMER</option>
                 </select>
+            </div>
+            <div class="mb-4">
+                <label class="block text-label-md mb-1 text-on-surface-variant">New Password</label>
+                <input type="password" name="password" id="userPassword" placeholder="Leave blank to keep current" class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg p-2 text-on-surface focus:border-primary outline-none">
             </div>
             <div class="flex justify-end gap-3 mt-6">
                 <button type="button" onclick="closeRoleModal()" class="px-4 py-2 border border-outline-variant rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-colors font-label-md">Cancel</button>
@@ -219,7 +223,8 @@ function applyFilters() {
 
 function openRoleModal(id, currentRole) {
     document.getElementById('userRole').value = currentRole.toUpperCase();
-    document.getElementById('roleForm').action = '<?= base_url('admin/users/role/') ?>' + id;
+    document.getElementById('userPassword').value = '';
+    document.getElementById('roleForm').action = '<?= base_url('admin/users/update/') ?>' + id;
     document.getElementById('roleModal').classList.remove('hidden');
 }
 function closeRoleModal() {

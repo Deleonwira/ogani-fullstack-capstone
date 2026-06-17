@@ -63,7 +63,7 @@ class WishlistScreen extends StatelessWidget {
                 crossAxisCount: 2,
                 mainAxisSpacing: 16,
                 crossAxisSpacing: 16,
-                childAspectRatio: 0.7,
+                childAspectRatio: 0.6,
               ),
               itemBuilder: (context, index) {
                 return _buildWishlistCard(context, wishlistProducts[index]);
@@ -147,14 +147,17 @@ class WishlistScreen extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        '\$${product.price.toStringAsFixed(2)}',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.primary,
+                      Expanded(
+                        child: Text(
+                          '\$${product.price.toStringAsFixed(2)}',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.primary,
+                          ),
                         ),
                       ),
+                      const SizedBox(width: 4),
                       GestureDetector(
                         onTap: () {
                           Provider.of<CartProvider>(context, listen: false).addItem(product);
