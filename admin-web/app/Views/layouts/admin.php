@@ -266,15 +266,8 @@ $active_page = $active_page ?? 'dashboard';
 <div class="p-4 border-b border-outline-variant/50">
 <h3 class="font-title-md text-on-surface">Notifications</h3>
 </div>
-<div class="max-h-[300px] overflow-y-auto">
-<div class="p-4 border-b border-outline-variant/30 hover:bg-surface-container-low transition-colors cursor-pointer text-sm">
-<p class="text-on-surface font-medium">New order received!</p>
-<p class="text-on-surface-variant text-xs mt-1">Order #1234 from John Doe</p>
-</div>
-<div class="p-4 border-b border-outline-variant/30 hover:bg-surface-container-low transition-colors cursor-pointer text-sm">
-<p class="text-on-surface font-medium">Product out of stock</p>
-<p class="text-on-surface-variant text-xs mt-1">Organic Tomatoes are out of stock.</p>
-</div>
+<div class="p-4 text-center border-b border-outline-variant/30 text-sm">
+<p class="text-on-surface-variant">Tidak ada notifikasi baru.</p>
 </div>
 <div class="p-3 text-center">
 <a href="/admin/notifications" class="text-primary text-sm font-medium hover:underline">View All Notifications</a>

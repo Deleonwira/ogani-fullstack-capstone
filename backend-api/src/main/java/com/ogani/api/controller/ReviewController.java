@@ -24,9 +24,5 @@ public class ReviewController {
         return ResponseEntity.ok(ApiResponse.success(reviewService.getAllReviews()));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<Void>> deleteReview(@PathVariable Integer id) {
-        reviewService.deleteReview(id);
-        return ResponseEntity.ok(ApiResponse.success(null));
-    }
+
 }

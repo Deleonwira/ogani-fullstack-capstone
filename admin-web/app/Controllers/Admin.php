@@ -235,11 +235,6 @@ class Admin extends BaseController
         return redirect()->to('/admin/promos');
     }
 
-    public function deleteReview($id)
-    {
-        $this->deleteApi('reviews/' . $id);
-        return redirect()->to('/admin/reviews');
-    }
 
     public function deleteUser($id)
     {

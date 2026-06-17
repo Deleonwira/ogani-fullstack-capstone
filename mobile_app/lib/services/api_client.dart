@@ -11,8 +11,8 @@ class ApiClient {
     }
 
     if (defaultTargetPlatform == TargetPlatform.android) {
-      // Use local IP address for physical Android device over USB/WiFi
-      return 'http://172.20.10.6:8080/api';
+      // Use laptop's Wi-Fi IP address so physical device can connect to backend
+      return 'http://192.168.1.15:8080/api';
     }
 
     return 'http://localhost:8080/api';

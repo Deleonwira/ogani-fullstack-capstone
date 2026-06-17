@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jun 15, 2026 at 05:25 AM
+-- Generation Time: Jun 17, 2026 at 03:38 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -29,18 +29,10 @@ SET time_zone = "+00:00";
 
 CREATE TABLE `cart` (
   `cart_id` int(11) NOT NULL,
-  `user_id` int(11) DEFAULT NULL,
   `product_id` int(11) DEFAULT NULL,
-  `quantity` int(11) DEFAULT 1
+  `quantity` int(11) DEFAULT NULL,
+  `user_id` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `cart`
---
-
-INSERT INTO `cart` (`cart_id`, `user_id`, `product_id`, `quantity`) VALUES
-(6, 2, 1, 2),
-(16, 3, 2, 1);
 
 -- --------------------------------------------------------
 
@@ -59,12 +51,10 @@ CREATE TABLE `categories` (
 --
 
 INSERT INTO `categories` (`category_id`, `category_name`, `image`) VALUES
-(1, 'Fruits', 'https://i.pinimg.com/736x/23/a3/ff/23a3ffac0623ea6d2bd0c8b16619964a.jpg'),
-(2, 'Vegetables', 'https://i.pinimg.com/1200x/c8/6d/d7/c86dd70e9f9deb4d725c627a03e74891.jpg'),
-(3, 'Beverages', 'https://i.pinimg.com/736x/d4/15/b8/d415b8cf493969d41ab218621c1fbaeb.jpg'),
-(4, 'Dried Fruit', 'https://i.pinimg.com/736x/ab/da/b3/abdab3b2128705642e954665e3755748.jpg'),
-(5, 'Fast Food', 'https://i.pinimg.com/1200x/23/6b/a5/236ba56962a3ba362a47fcbc634f206e.jpg'),
-(6, 'Meat', 'https://i.pinimg.com/1200x/1d/2e/4e/1d2e4e5a92c50a80da8a6c180c742084.jpg');
+(1, 'Fresh Fruits', NULL),
+(2, 'Vegetables', 'https://images.pexels.com/photos/1414651/pexels-photo-1414651.jpeg?auto=compress&cs=tinysrgb&w=800'),
+(3, 'Fresh Meat', 'https://images.pexels.com/photos/6187720/pexels-photo-6187720.jpeg?auto=compress&cs=tinysrgb&w=800'),
+(4, 'Nuts', 'http://image');
 
 -- --------------------------------------------------------
 
@@ -73,14 +63,25 @@ INSERT INTO `categories` (`category_id`, `category_name`, `image`) VALUES
 --
 
 CREATE TABLE `notifications` (
+  `is_read` bit(1) DEFAULT NULL,
   `notification_id` int(11) NOT NULL,
   `user_id` int(11) DEFAULT NULL,
-  `title` varchar(255) NOT NULL,
-  `message` text NOT NULL,
+  `timestamp` datetime(6) DEFAULT NULL,
   `type` varchar(50) DEFAULT NULL,
-  `is_read` tinyint(1) DEFAULT 0,
-  `timestamp` datetime DEFAULT current_timestamp()
+  `message` text NOT NULL,
+  `title` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `notifications`
+--
+
+INSERT INTO `notifications` (`is_read`, `notification_id`, `user_id`, `timestamp`, `type`, `message`, `title`) VALUES
+(b'0', 1, 2, '2026-06-16 20:36:15.000000', 'INFO', 'We are glad to have you here. Check out our fresh products.', 'Welcome to Ogani!'),
+(b'0', 2, 2, '2026-06-17 15:36:15.000000', 'PROMO', 'Use promo code FRESH20 for Rp 20.000 off your next purchase!', 'Promo Alert: FRESH20'),
+(b'1', 3, 3, '2026-06-15 20:36:15.000000', 'ORDER', 'Your order has been delivered successfully. Enjoy your fresh produce!', 'Order Completed'),
+(b'0', 4, 3, '2026-06-17 18:36:15.000000', 'PROMO', 'You have earned a special discount on meat products.', 'Special Discount'),
+(b'0', 5, NULL, '2026-06-17 20:36:17.000000', 'order', 'Your order #21 has been successfully placed. We are processing it.', 'Order Placed successfully');
 
 -- --------------------------------------------------------
 
@@ -89,36 +90,48 @@ CREATE TABLE `notifications` (
 --
 
 CREATE TABLE `orders` (
-  `order_id` int(11) NOT NULL,
-  `invoice_code` varchar(50) DEFAULT NULL,
-  `user_id` int(11) DEFAULT NULL,
   `address_id` int(11) DEFAULT NULL,
-  `payment_method_id` int(11) DEFAULT NULL,
-  `total_price` decimal(12,2) DEFAULT NULL,
-  `subtotal_amount` decimal(12,2) DEFAULT NULL,
-  `shipping_cost` decimal(12,2) DEFAULT NULL,
   `discount_amount` decimal(12,2) DEFAULT NULL,
-  `order_status` enum('pending','processing','shipped','completed','cancelled') DEFAULT 'pending',
-  `order_time` datetime DEFAULT current_timestamp(),
-  `estimated_arrival` datetime DEFAULT NULL,
-  `receiver_name` varchar(100) DEFAULT NULL,
+  `order_id` int(11) NOT NULL,
+  `payment_method_id` int(11) DEFAULT NULL,
+  `shipping_cost` decimal(12,2) DEFAULT NULL,
+  `subtotal_amount` decimal(12,2) DEFAULT NULL,
+  `total_price` decimal(12,2) DEFAULT NULL,
+  `user_id` int(11) DEFAULT NULL,
+  `estimated_arrival` datetime(6) DEFAULT NULL,
+  `order_time` datetime(6) DEFAULT NULL,
   `receiver_phone` varchar(20) DEFAULT NULL,
-  `shipping_address` text DEFAULT NULL
+  `invoice_code` varchar(50) DEFAULT NULL,
+  `receiver_name` varchar(100) DEFAULT NULL,
+  `shipping_address` text DEFAULT NULL,
+  `order_status` enum('pending','processing','shipped','completed','cancelled') DEFAULT 'pending'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `orders`
 --
 
-INSERT INTO `orders` (`order_id`, `invoice_code`, `user_id`, `address_id`, `payment_method_id`, `total_price`, `subtotal_amount`, `shipping_cost`, `discount_amount`, `order_status`, `order_time`, `estimated_arrival`, `receiver_name`, `receiver_phone`, `shipping_address`) VALUES
-(1, 'INV-68F3FFA231C57', 1, NULL, NULL, 30000.00, NULL, NULL, NULL, 'shipped', '2025-10-19 03:59:14', NULL, 'Jamaludin', '083123123', 'axkdnasd'),
-(2, 'INV-68F479720E250', 1, NULL, NULL, 30000.00, NULL, NULL, NULL, 'pending', '2025-10-19 12:38:58', NULL, 'jamaldu', '12093123', 'iosajdasd'),
-(3, 'INV-68F4CFC15F1F2', 1, NULL, NULL, 30000.00, NULL, NULL, NULL, 'processing', '2025-10-19 18:47:13', NULL, 'Jamaludin', '083103293225', 'Tangerang'),
-(4, 'INV-68F506821A13B', 1, NULL, NULL, 62000.00, NULL, NULL, NULL, 'pending', '2025-10-19 22:40:50', NULL, 'asdkasd', 'asoidjasd', 'asdji0aisd'),
-(5, 'INV-68F50D03A5978', 1, NULL, NULL, 40000.00, NULL, NULL, NULL, 'pending', '2025-10-19 23:08:35', NULL, 'lkasd', '123123', 'dsaasd'),
-(6, 'INV-68F50D1B1A869', 1, NULL, NULL, 40000.00, NULL, NULL, NULL, 'pending', '2025-10-19 23:08:59', NULL, 'lkasd', '123123', 'dsaasd'),
-(7, 'INV-68F50D432ED58', 1, NULL, NULL, 24000.00, NULL, NULL, NULL, 'pending', '2025-10-19 23:09:39', NULL, 'efgg', '971923', 'as;odojasd'),
-(8, 'INV-68F5134B31DAC', 1, NULL, NULL, 30000.00, NULL, NULL, NULL, 'pending', '2025-10-19 23:35:23', NULL, 'Hamza Deleon', '083103293225', 'Tangerang');
+INSERT INTO `orders` (`address_id`, `discount_amount`, `order_id`, `payment_method_id`, `shipping_cost`, `subtotal_amount`, `total_price`, `user_id`, `estimated_arrival`, `order_time`, `receiver_phone`, `invoice_code`, `receiver_name`, `shipping_address`, `order_status`) VALUES
+(NULL, NULL, 2, NULL, NULL, NULL, 175000.00, 3, NULL, '2026-06-08 20:36:14.000000', NULL, 'INV-1001', NULL, NULL, 'completed'),
+(NULL, NULL, 3, NULL, NULL, NULL, 200000.00, 2, NULL, '2026-05-30 20:36:14.000000', NULL, 'INV-1002', NULL, NULL, 'completed'),
+(NULL, NULL, 4, NULL, NULL, NULL, 225000.00, 3, NULL, '2026-05-21 20:36:14.000000', NULL, 'INV-1003', NULL, NULL, 'completed'),
+(NULL, NULL, 5, NULL, NULL, NULL, 250000.00, 2, NULL, '2026-05-12 20:36:14.000000', NULL, 'INV-1004', NULL, NULL, 'pending'),
+(NULL, NULL, 6, NULL, NULL, NULL, 275000.00, 3, NULL, '2026-05-03 20:36:14.000000', NULL, 'INV-1005', NULL, NULL, 'completed'),
+(NULL, NULL, 7, NULL, NULL, NULL, 300000.00, 2, NULL, '2026-04-24 20:36:14.000000', NULL, 'INV-1006', NULL, NULL, 'completed'),
+(NULL, NULL, 8, NULL, NULL, NULL, 325000.00, 3, NULL, '2026-04-15 20:36:14.000000', NULL, 'INV-1007', NULL, NULL, 'completed'),
+(NULL, NULL, 9, NULL, NULL, NULL, 350000.00, 2, NULL, '2026-04-06 20:36:14.000000', NULL, 'INV-1008', NULL, NULL, 'pending'),
+(NULL, NULL, 10, NULL, NULL, NULL, 375000.00, 3, NULL, '2026-03-28 20:36:14.000000', NULL, 'INV-1009', NULL, NULL, 'completed'),
+(NULL, NULL, 11, NULL, NULL, NULL, 400000.00, 2, NULL, '2026-03-19 20:36:14.000000', NULL, 'INV-1010', NULL, NULL, 'completed'),
+(NULL, NULL, 12, NULL, NULL, NULL, 425000.00, 3, NULL, '2026-03-10 20:36:14.000000', NULL, 'INV-1011', NULL, NULL, 'completed'),
+(NULL, NULL, 13, NULL, NULL, NULL, 450000.00, 2, NULL, '2026-03-01 20:36:14.000000', NULL, 'INV-1012', NULL, NULL, 'pending'),
+(NULL, NULL, 14, NULL, NULL, NULL, 475000.00, 3, NULL, '2026-02-20 20:36:14.000000', NULL, 'INV-1013', NULL, NULL, 'completed'),
+(NULL, NULL, 15, NULL, NULL, NULL, 500000.00, 2, NULL, '2026-02-11 20:36:14.000000', NULL, 'INV-1014', NULL, NULL, 'completed'),
+(NULL, NULL, 16, NULL, NULL, NULL, 525000.00, 3, NULL, '2026-02-02 20:36:14.000000', NULL, 'INV-1015', NULL, NULL, 'completed'),
+(NULL, NULL, 17, NULL, NULL, NULL, 550000.00, 2, NULL, '2026-01-24 20:36:14.000000', NULL, 'INV-1016', NULL, NULL, 'pending'),
+(NULL, NULL, 18, NULL, NULL, NULL, 575000.00, 3, NULL, '2026-01-15 20:36:14.000000', NULL, 'INV-1017', NULL, NULL, 'completed'),
+(NULL, NULL, 19, NULL, NULL, NULL, 600000.00, 2, NULL, '2026-01-06 20:36:14.000000', NULL, 'INV-1018', NULL, NULL, 'completed'),
+(NULL, NULL, 20, NULL, NULL, NULL, 625000.00, 3, NULL, '2025-12-28 20:36:15.000000', NULL, 'INV-1019', NULL, NULL, 'completed'),
+(NULL, NULL, 21, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -129,27 +142,11 @@ INSERT INTO `orders` (`order_id`, `invoice_code`, `user_id`, `address_id`, `paym
 CREATE TABLE `order_details` (
   `detail_id` int(11) NOT NULL,
   `order_id` int(11) DEFAULT NULL,
+  `price_at_order` decimal(12,2) DEFAULT NULL,
   `product_id` int(11) DEFAULT NULL,
   `quantity` int(11) DEFAULT NULL,
-  `price_at_order` decimal(12,2) DEFAULT NULL,
   `subtotal` decimal(12,2) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `order_details`
---
-
-INSERT INTO `order_details` (`detail_id`, `order_id`, `product_id`, `quantity`, `price_at_order`, `subtotal`) VALUES
-(1, 1, 4, 1, 10000.00, 10000.00),
-(2, 1, 2, 1, 20000.00, 20000.00),
-(3, 2, 1, 1, 30000.00, 30000.00),
-(4, 3, 1, 1, 30000.00, 30000.00),
-(5, 4, 7, 1, 12000.00, 12000.00),
-(6, 4, 2, 1, 20000.00, 20000.00),
-(7, 4, 1, 1, 30000.00, 30000.00),
-(8, 5, 2, 2, 20000.00, 40000.00),
-(9, 7, 3, 2, 12000.00, 24000.00),
-(10, 8, 1, 1, 30000.00, 30000.00);
 
 -- --------------------------------------------------------
 
@@ -158,11 +155,11 @@ INSERT INTO `order_details` (`detail_id`, `order_id`, `product_id`, `quantity`, 
 --
 
 CREATE TABLE `order_tracking` (
-  `tracking_id` int(11) NOT NULL,
   `order_id` int(11) DEFAULT NULL,
-  `status_update` varchar(100) NOT NULL,
-  `timestamp` datetime DEFAULT current_timestamp(),
+  `tracking_id` int(11) NOT NULL,
+  `timestamp` datetime(6) DEFAULT NULL,
   `courier_location` varchar(100) DEFAULT NULL,
+  `status_update` varchar(100) NOT NULL,
   `courier_info` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -175,10 +172,18 @@ CREATE TABLE `order_tracking` (
 CREATE TABLE `payment_methods` (
   `payment_method_id` int(11) NOT NULL,
   `user_id` int(11) DEFAULT NULL,
+  `masked_number` varchar(50) DEFAULT NULL,
   `type` varchar(50) NOT NULL,
-  `provider` varchar(100) NOT NULL,
-  `masked_number` varchar(50) DEFAULT NULL
+  `provider` varchar(100) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `payment_methods`
+--
+
+INSERT INTO `payment_methods` (`payment_method_id`, `user_id`, `masked_number`, `type`, `provider`) VALUES
+(1, NULL, NULL, 'Credit Card', 'Visa'),
+(2, NULL, NULL, 'E-Wallet', 'GoPay');
 
 -- --------------------------------------------------------
 
@@ -187,30 +192,28 @@ CREATE TABLE `payment_methods` (
 --
 
 CREATE TABLE `products` (
-  `product_id` int(11) NOT NULL,
-  `product_name` varchar(100) NOT NULL,
-  `description` text DEFAULT NULL,
+  `category_id` int(11) DEFAULT NULL,
   `price` decimal(12,2) NOT NULL,
-  `unit` varchar(50) DEFAULT NULL,
+  `product_id` int(11) NOT NULL,
+  `stock` int(11) DEFAULT NULL,
   `weight_per_unit` decimal(10,2) DEFAULT NULL,
+  `unit` varchar(50) DEFAULT NULL,
+  `product_name` varchar(100) NOT NULL,
   `product_status` varchar(100) DEFAULT NULL,
-  `stock` int(11) DEFAULT 0,
-  `product_image` varchar(255) DEFAULT NULL,
-  `category_id` int(11) DEFAULT NULL
+  `description` text DEFAULT NULL,
+  `product_image` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `products`
 --
 
-INSERT INTO `products` (`product_id`, `product_name`, `description`, `price`, `unit`, `weight_per_unit`, `product_status`, `stock`, `product_image`, `category_id`) VALUES
-(1, 'Apple Fuji', 'Fresh Fuji apples imported from Japan', 30000.00, NULL, NULL, NULL, 93, 'https://i.pinimg.com/1200x/9f/48/90/9f48905995a8a3320f4cac90368fc4a1.jpg', 1),
-(2, 'Banana Cavendish', 'Sweet Cavendish bananas per kg', 20000.00, NULL, NULL, NULL, 116, 'https://i.pinimg.com/736x/42/14/73/421473ceb7d77d9f36be61c8b77bc23f.jpg', 1),
-(3, 'Broccoli', 'Organic green broccoli per 500g', 12000.00, NULL, NULL, NULL, 78, 'https://i.pinimg.com/1200x/91/c2/d5/91c2d5cb35f8db6bd9ab3cadcb2e65a3.jpg', 2),
-(4, 'Carrot', 'Local fresh carrots per kg', 10000.00, NULL, NULL, NULL, 89, 'https://i.pinimg.com/1200x/62/2d/3d/622d3d6a9254162fe71459bdd26b016f.jpg', 2),
-(5, 'Apple Juice', '600ML of Apple Juice', 22000.00, NULL, NULL, NULL, 60, 'https://i.pinimg.com/736x/ab/22/98/ab22987c0024f19f2c79b3fbf8fd27f9.jpg', 3),
-(6, 'Soft Dried Dragon Fruit', 'Hand Selected Dragon Fruit', 20000.00, NULL, NULL, NULL, 150, 'https://i.pinimg.com/736x/33/19/18/331918d332a80266587e3267fb36bfd3.jpg', 4),
-(7, 'Fried Chicken', 'Very Crunchy and Juicy', 12000.00, NULL, NULL, NULL, 90, 'https://i.pinimg.com/1200x/1b/c3/c1/1bc3c1feb503ba69895c5eaedcebbcfd.jpg', 5);
+INSERT INTO `products` (`category_id`, `price`, `product_id`, `stock`, `weight_per_unit`, `unit`, `product_name`, `product_status`, `description`, `product_image`) VALUES
+(1, 25000.00, 1, NULL, NULL, NULL, 'Apple Premium', NULL, NULL, NULL),
+(1, 25000.00, 2, 100, NULL, NULL, 'Bananas', NULL, NULL, 'https://images.pexels.com/photos/2872755/pexels-photo-2872755.jpeg?auto=compress&cs=tinysrgb&w=800'),
+(2, 15000.00, 3, 80, NULL, NULL, 'Carrots', NULL, NULL, 'https://images.pexels.com/photos/143133/pexels-photo-143133.jpeg?auto=compress&cs=tinysrgb&w=800'),
+(3, 150000.00, 4, 20, NULL, NULL, 'Beef Steak', NULL, NULL, 'https://images.pexels.com/photos/361184/asparagus-steak-veal-steak-veal-361184.jpeg?auto=compress&cs=tinysrgb&w=800'),
+(1, 10000.00, 5, 10, 1.00, 'kg', 'New Apple', 'In Stock', NULL, 'url');
 
 -- --------------------------------------------------------
 
@@ -231,15 +234,23 @@ CREATE TABLE `product_images` (
 --
 
 CREATE TABLE `promos` (
-  `promo_id` int(11) NOT NULL,
-  `promo_code` varchar(50) NOT NULL,
-  `title` varchar(255) NOT NULL,
-  `description` text DEFAULT NULL,
   `discount_value` decimal(12,2) NOT NULL,
-  `minimum_spend` decimal(12,2) DEFAULT 0.00,
-  `expiration_date` datetime NOT NULL,
-  `banner_image_url` varchar(255) DEFAULT NULL
+  `minimum_spend` decimal(12,2) DEFAULT NULL,
+  `promo_id` int(11) NOT NULL,
+  `expiration_date` datetime(6) NOT NULL,
+  `promo_code` varchar(50) NOT NULL,
+  `banner_image_url` varchar(255) DEFAULT NULL,
+  `description` text DEFAULT NULL,
+  `title` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `promos`
+--
+
+INSERT INTO `promos` (`discount_value`, `minimum_spend`, `promo_id`, `expiration_date`, `promo_code`, `banner_image_url`, `description`, `title`) VALUES
+(20000.00, 0.00, 2, '2026-07-02 20:36:14.000000', 'FRESH20', NULL, NULL, 'Fresh Produce Discount'),
+(50000.00, 200000.00, 3, '2025-12-31 23:59:59.000000', 'HEMAT50', NULL, NULL, 'Hemat');
 
 -- --------------------------------------------------------
 
@@ -248,14 +259,37 @@ CREATE TABLE `promos` (
 --
 
 CREATE TABLE `reviews` (
-  `review_id` int(11) NOT NULL,
   `product_id` int(11) DEFAULT NULL,
+  `rating` int(11) NOT NULL,
+  `review_id` int(11) NOT NULL,
   `user_id` int(11) DEFAULT NULL,
-  `rating` int(11) NOT NULL CHECK (`rating` >= 1 and `rating` <= 5),
-  `title` varchar(255) DEFAULT NULL,
+  `review_date` datetime(6) DEFAULT NULL,
   `content` text DEFAULT NULL,
-  `review_date` datetime DEFAULT current_timestamp()
+  `title` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `reviews`
+--
+
+INSERT INTO `reviews` (`product_id`, `rating`, `review_id`, `user_id`, `review_date`, `content`, `title`) VALUES
+(1, 5, 1, 2, '2026-06-17 20:36:15.000000', 'Very fresh and delicious!', 'Great Apples'),
+(2, 4, 2, 3, '2026-06-17 20:36:15.000000', 'Good quality, fast delivery.', 'Nice Bananas'),
+(1, 3, 3, 2, '2026-06-17 20:36:15.000000', 'Bagus sekali produknya, kualitas sangat terjamin dan pengiriman cepat. (Review 0)', 'Sangat Puas 0'),
+(2, 4, 4, 3, '2026-06-16 20:36:15.000000', 'Bagus sekali produknya, kualitas sangat terjamin dan pengiriman cepat. (Review 1)', 'Sangat Puas 1'),
+(3, 5, 5, 2, '2026-06-15 20:36:15.000000', 'Bagus sekali produknya, kualitas sangat terjamin dan pengiriman cepat. (Review 2)', 'Sangat Puas 2'),
+(4, 3, 6, 3, '2026-06-14 20:36:15.000000', 'Bagus sekali produknya, kualitas sangat terjamin dan pengiriman cepat. (Review 3)', 'Sangat Puas 3'),
+(1, 4, 7, 2, '2026-06-13 20:36:15.000000', 'Bagus sekali produknya, kualitas sangat terjamin dan pengiriman cepat. (Review 4)', 'Sangat Puas 4'),
+(2, 5, 8, 3, '2026-06-12 20:36:15.000000', 'Bagus sekali produknya, kualitas sangat terjamin dan pengiriman cepat. (Review 5)', 'Sangat Puas 5'),
+(3, 3, 9, 2, '2026-06-11 20:36:15.000000', 'Bagus sekali produknya, kualitas sangat terjamin dan pengiriman cepat. (Review 6)', 'Sangat Puas 6'),
+(4, 4, 10, 3, '2026-06-10 20:36:15.000000', 'Bagus sekali produknya, kualitas sangat terjamin dan pengiriman cepat. (Review 7)', 'Sangat Puas 7'),
+(1, 5, 11, 2, '2026-06-09 20:36:15.000000', 'Bagus sekali produknya, kualitas sangat terjamin dan pengiriman cepat. (Review 8)', 'Sangat Puas 8'),
+(2, 3, 12, 3, '2026-06-08 20:36:15.000000', 'Bagus sekali produknya, kualitas sangat terjamin dan pengiriman cepat. (Review 9)', 'Sangat Puas 9'),
+(3, 4, 13, 2, '2026-06-07 20:36:15.000000', 'Bagus sekali produknya, kualitas sangat terjamin dan pengiriman cepat. (Review 10)', 'Sangat Puas 10'),
+(4, 5, 14, 3, '2026-06-06 20:36:15.000000', 'Bagus sekali produknya, kualitas sangat terjamin dan pengiriman cepat. (Review 11)', 'Sangat Puas 11'),
+(1, 3, 15, 2, '2026-06-05 20:36:15.000000', 'Bagus sekali produknya, kualitas sangat terjamin dan pengiriman cepat. (Review 12)', 'Sangat Puas 12'),
+(2, 4, 16, 3, '2026-06-04 20:36:15.000000', 'Bagus sekali produknya, kualitas sangat terjamin dan pengiriman cepat. (Review 13)', 'Sangat Puas 13'),
+(3, 5, 17, 2, '2026-06-03 20:36:15.000000', 'Bagus sekali produknya, kualitas sangat terjamin dan pengiriman cepat. (Review 14)', 'Sangat Puas 14');
 
 -- --------------------------------------------------------
 
@@ -264,33 +298,30 @@ CREATE TABLE `reviews` (
 --
 
 CREATE TABLE `users` (
+  `age` int(11) DEFAULT NULL,
+  `birth_date` date DEFAULT NULL,
+  `total_orders` int(11) DEFAULT NULL,
+  `total_points` int(11) DEFAULT NULL,
   `user_id` int(11) NOT NULL,
-  `username` varchar(100) NOT NULL,
+  `phone_number` varchar(20) DEFAULT NULL,
   `email` varchar(100) NOT NULL,
+  `username` varchar(100) NOT NULL,
+  `address` text DEFAULT NULL,
+  `avatar_url` varchar(255) DEFAULT NULL,
   `full_name` varchar(255) DEFAULT NULL,
   `password` varchar(255) NOT NULL,
-  `phone_number` varchar(20) DEFAULT NULL,
-  `birth_date` date DEFAULT NULL,
-  `age` int(11) DEFAULT NULL,
-  `address` text DEFAULT NULL,
-  `role` enum('ADMIN','CUSTOMER') DEFAULT 'CUSTOMER',
-  `avatar_url` varchar(255) DEFAULT NULL,
-  `total_orders` int(11) DEFAULT 0,
-  `total_points` int(11) DEFAULT 0
+  `role` enum('ADMIN','CUSTOMER') NOT NULL DEFAULT 'CUSTOMER'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`user_id`, `username`, `email`, `full_name`, `password`, `phone_number`, `birth_date`, `age`, `address`, `role`, `avatar_url`, `total_orders`, `total_points`) VALUES
-(1, 'deleonwira', 'deleonwira@gmail.com', NULL, '123', '081234567890', NULL, NULL, NULL, 'CUSTOMER', NULL, 0, 0),
-(2, 'fathur', 'fathur@gmail.com', NULL, '123', '082198765432', NULL, NULL, NULL, 'CUSTOMER', NULL, 0, 0),
-(3, 'Admin', 'admin@gmail.com', NULL, '123', '080000000000', NULL, NULL, NULL, 'CUSTOMER', NULL, 0, 0),
-(4, 'jamaludin', 'jamaludin@gmail.com', NULL, '$2y$10$q3NRUUPs/4mKX7Op/6wUPe1/1V3fjZ/bkTt1qtbLg8t/4zr1S2fF6', '0182973123', NULL, NULL, NULL, 'CUSTOMER', NULL, 0, 0),
-(5, 'eren', 'eren@gmail.com', NULL, '$2y$10$462ssbPOW83ustV/m/n2e.hpE71HamBoq8eBeIFZzI2PlvPK3YO7S', '10293123', NULL, NULL, NULL, 'CUSTOMER', NULL, 0, 0),
-(7, 'johndoe2025', 'john.doe@example.com', 'John Doe', '$2a$10$vDvz7bfItBOUqULorVFNguz0crZa6xqUZEDLMje1Q3n0GF52/S.by', '082299887766', '1990-01-15', 35, 'Jl. Sudirman No. 456, Jakarta Selatan', 'CUSTOMER', NULL, 0, 0),
-(8, 'admintest', 'admin@test.com', 'Admin Test User', '$2a$10$H5DnSy6ZHHfbKVyyGtcWoORjA3Hi2iGWQVVHOVxOHtWKgp4P9cGHq', '085512345678', '1985-03-20', 40, 'Jl. Admin Street No. 1, Jakarta', 'CUSTOMER', NULL, 0, 0);
+INSERT INTO `users` (`age`, `birth_date`, `total_orders`, `total_points`, `user_id`, `phone_number`, `email`, `username`, `address`, `avatar_url`, `full_name`, `password`, `role`) VALUES
+(NULL, NULL, 0, 150, 2, NULL, 'john@example.com', 'johndoe', NULL, NULL, 'John Doe', '$2a$10$Akic4rTnYEJ//Fp8XhqXY.nxb9qf.mSxAqygJXbma1DPCw4JAl1RG', 'CUSTOMER'),
+(NULL, NULL, 0, 300, 3, NULL, 'alice@example.com', 'alicesmith', NULL, NULL, 'Alice Smith', '$2a$10$xnS8eU7coA7g6LUHA5NwH.4nxR9Dn0PgfgrNDOcKsXOSDfkHSqaq6', 'CUSTOMER'),
+(NULL, NULL, 0, 0, 4, NULL, 'admin@ogani.com', 'admin', NULL, NULL, NULL, '$2a$10$QIt2gbXm54KyqPg1mecx/OSOkZURLK6b8WO9nPT.OuQSZj3ShKC7q', 'CUSTOMER'),
+(NULL, NULL, 0, 0, 5, NULL, 'baru@test.com', 'userbaru', NULL, NULL, NULL, '$2a$10$HZ79QORmBLF8JAIhQczJ1eby91DUo6tS1pz.O.jLD2M/wLl3HDAt.', 'CUSTOMER');
 
 -- --------------------------------------------------------
 
@@ -301,11 +332,18 @@ INSERT INTO `users` (`user_id`, `username`, `email`, `full_name`, `password`, `p
 CREATE TABLE `user_addresses` (
   `address_id` int(11) NOT NULL,
   `user_id` int(11) DEFAULT NULL,
+  `phone_number` varchar(20) DEFAULT NULL,
   `label` varchar(50) DEFAULT NULL,
-  `full_address` text NOT NULL,
   `coordinates` varchar(100) DEFAULT NULL,
-  `phone_number` varchar(20) DEFAULT NULL
+  `full_address` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `user_addresses`
+--
+
+INSERT INTO `user_addresses` (`address_id`, `user_id`, `phone_number`, `label`, `coordinates`, `full_address`) VALUES
+(1, 2, NULL, NULL, NULL, '123 Main St, Jakarta 10000');
 
 -- --------------------------------------------------------
 
@@ -314,8 +352,8 @@ CREATE TABLE `user_addresses` (
 --
 
 CREATE TABLE `wishlist` (
-  `user_id` int(11) NOT NULL,
-  `product_id` int(11) NOT NULL
+  `product_id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -327,8 +365,8 @@ CREATE TABLE `wishlist` (
 --
 ALTER TABLE `cart`
   ADD PRIMARY KEY (`cart_id`),
-  ADD KEY `user_id` (`user_id`),
-  ADD KEY `product_id` (`product_id`);
+  ADD KEY `FKpu4bcbluhsxagirmbdn7dilm5` (`product_id`),
+  ADD KEY `FKg5uhi8vpsuy0lgloxk2h4w5o6` (`user_id`);
 
 --
 -- Indexes for table `categories`
@@ -341,95 +379,90 @@ ALTER TABLE `categories`
 --
 ALTER TABLE `notifications`
   ADD PRIMARY KEY (`notification_id`),
-  ADD KEY `fk_notifications_user` (`user_id`);
+  ADD KEY `FK9y21adhxn0ayjhfocscqox7bh` (`user_id`);
 
 --
 -- Indexes for table `orders`
 --
 ALTER TABLE `orders`
   ADD PRIMARY KEY (`order_id`),
-  ADD UNIQUE KEY `invoice_code` (`invoice_code`),
-  ADD KEY `user_id` (`user_id`),
-  ADD KEY `fk_orders_address` (`address_id`),
-  ADD KEY `fk_orders_payment` (`payment_method_id`);
+  ADD UNIQUE KEY `UK31s2ue419um0d1wdgsx10w2ls` (`invoice_code`),
+  ADD KEY `FKebxbj09m4a87s8na3lr86xnf4` (`address_id`),
+  ADD KEY `FKa03ljb6t6oa6mqtoifuwkb0kw` (`payment_method_id`),
+  ADD KEY `FK32ql8ubntj5uh44ph9659tiih` (`user_id`);
 
 --
 -- Indexes for table `order_details`
 --
 ALTER TABLE `order_details`
   ADD PRIMARY KEY (`detail_id`),
-  ADD KEY `order_id` (`order_id`),
-  ADD KEY `product_id` (`product_id`);
+  ADD KEY `FKjyu2qbqt8gnvno9oe9j2s2ldk` (`order_id`),
+  ADD KEY `FK4q98utpd73imf4yhttm3w0eax` (`product_id`);
 
 --
 -- Indexes for table `order_tracking`
 --
 ALTER TABLE `order_tracking`
   ADD PRIMARY KEY (`tracking_id`),
-  ADD KEY `fk_order_tracking` (`order_id`);
+  ADD KEY `FKeu0lumcx8bcx6lk035xiklty0` (`order_id`);
 
 --
 -- Indexes for table `payment_methods`
 --
 ALTER TABLE `payment_methods`
   ADD PRIMARY KEY (`payment_method_id`),
-  ADD KEY `fk_user_payments` (`user_id`);
+  ADD KEY `FKin7rtmim3ljrrhh5kxbq27s2v` (`user_id`);
 
 --
 -- Indexes for table `products`
 --
 ALTER TABLE `products`
   ADD PRIMARY KEY (`product_id`),
-  ADD KEY `category_id` (`category_id`);
+  ADD KEY `FKog2rp4qthbtt2lfyhfo32lsw9` (`category_id`);
 
 --
 -- Indexes for table `product_images`
 --
 ALTER TABLE `product_images`
   ADD PRIMARY KEY (`image_id`),
-  ADD KEY `fk_product_images` (`product_id`);
+  ADD KEY `FKqnq71xsohugpqwf3c9gxmsuy` (`product_id`);
 
 --
 -- Indexes for table `promos`
 --
 ALTER TABLE `promos`
   ADD PRIMARY KEY (`promo_id`),
-  ADD UNIQUE KEY `promo_code` (`promo_code`);
+  ADD UNIQUE KEY `UKtbmrg7b7yy31my1j67bbmyyg2` (`promo_code`);
 
 --
 -- Indexes for table `reviews`
 --
 ALTER TABLE `reviews`
   ADD PRIMARY KEY (`review_id`),
-  ADD KEY `fk_reviews_product` (`product_id`),
-  ADD KEY `fk_reviews_user` (`user_id`);
+  ADD KEY `FKpl51cejpw4gy5swfar8br9ngi` (`product_id`),
+  ADD KEY `FKcgy7qjc1r99dp117y9en6lxye` (`user_id`);
 
 --
 -- Indexes for table `users`
 --
 ALTER TABLE `users`
   ADD PRIMARY KEY (`user_id`),
-  ADD UNIQUE KEY `email` (`email`),
-  ADD UNIQUE KEY `unique_email` (`email`),
-  ADD UNIQUE KEY `unique_phone` (`phone_number`),
-  ADD KEY `idx_users_full_name` (`full_name`),
-  ADD KEY `idx_users_phone` (`phone_number`),
-  ADD KEY `idx_users_email` (`email`),
-  ADD KEY `idx_users_username` (`username`);
+  ADD UNIQUE KEY `UK6dotkott2kjsp8vw4d0m25fb7` (`email`),
+  ADD UNIQUE KEY `UK9q63snka3mdh91as4io72espi` (`phone_number`);
 
 --
 -- Indexes for table `user_addresses`
 --
 ALTER TABLE `user_addresses`
   ADD PRIMARY KEY (`address_id`),
-  ADD KEY `fk_user_addresses` (`user_id`);
+  ADD KEY `FKn2fisxyyu3l9wlch3ve2nocgp` (`user_id`);
 
 --
 -- Indexes for table `wishlist`
 --
 ALTER TABLE `wishlist`
-  ADD PRIMARY KEY (`user_id`,`product_id`),
-  ADD KEY `fk_wishlist_product` (`product_id`);
+  ADD PRIMARY KEY (`product_id`,`user_id`),
+  ADD KEY `FKtrd6335blsefl2gxpb8lr0gr7` (`user_id`);
 
 --
 -- AUTO_INCREMENT for dumped tables
@@ -439,31 +472,31 @@ ALTER TABLE `wishlist`
 -- AUTO_INCREMENT for table `cart`
 --
 ALTER TABLE `cart`
-  MODIFY `cart_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+  MODIFY `cart_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `categories`
 --
 ALTER TABLE `categories`
-  MODIFY `category_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `category_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `notification_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `notification_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
 
 --
 -- AUTO_INCREMENT for table `order_details`
 --
 ALTER TABLE `order_details`
-  MODIFY `detail_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `detail_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `order_tracking`
@@ -475,13 +508,13 @@ ALTER TABLE `order_tracking`
 -- AUTO_INCREMENT for table `payment_methods`
 --
 ALTER TABLE `payment_methods`
-  MODIFY `payment_method_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `payment_method_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `products`
 --
 ALTER TABLE `products`
-  MODIFY `product_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `product_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `product_images`
@@ -493,25 +526,25 @@ ALTER TABLE `product_images`
 -- AUTO_INCREMENT for table `promos`
 --
 ALTER TABLE `promos`
-  MODIFY `promo_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `promo_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `reviews`
 --
 ALTER TABLE `reviews`
-  MODIFY `review_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `review_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `user_addresses`
 --
 ALTER TABLE `user_addresses`
-  MODIFY `address_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `address_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- Constraints for dumped tables
@@ -521,73 +554,73 @@ ALTER TABLE `user_addresses`
 -- Constraints for table `cart`
 --
 ALTER TABLE `cart`
-  ADD CONSTRAINT `cart_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
-  ADD CONSTRAINT `cart_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`);
+  ADD CONSTRAINT `FKg5uhi8vpsuy0lgloxk2h4w5o6` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
+  ADD CONSTRAINT `FKpu4bcbluhsxagirmbdn7dilm5` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`);
 
 --
 -- Constraints for table `notifications`
 --
 ALTER TABLE `notifications`
-  ADD CONSTRAINT `fk_notifications_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
+  ADD CONSTRAINT `FK9y21adhxn0ayjhfocscqox7bh` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`);
 
 --
 -- Constraints for table `orders`
 --
 ALTER TABLE `orders`
-  ADD CONSTRAINT `fk_orders_address` FOREIGN KEY (`address_id`) REFERENCES `user_addresses` (`address_id`) ON DELETE SET NULL,
-  ADD CONSTRAINT `fk_orders_payment` FOREIGN KEY (`payment_method_id`) REFERENCES `payment_methods` (`payment_method_id`) ON DELETE SET NULL,
-  ADD CONSTRAINT `orders_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`);
+  ADD CONSTRAINT `FK32ql8ubntj5uh44ph9659tiih` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
+  ADD CONSTRAINT `FKa03ljb6t6oa6mqtoifuwkb0kw` FOREIGN KEY (`payment_method_id`) REFERENCES `payment_methods` (`payment_method_id`),
+  ADD CONSTRAINT `FKebxbj09m4a87s8na3lr86xnf4` FOREIGN KEY (`address_id`) REFERENCES `user_addresses` (`address_id`);
 
 --
 -- Constraints for table `order_details`
 --
 ALTER TABLE `order_details`
-  ADD CONSTRAINT `order_details_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `orders` (`order_id`),
-  ADD CONSTRAINT `order_details_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`);
+  ADD CONSTRAINT `FK4q98utpd73imf4yhttm3w0eax` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`),
+  ADD CONSTRAINT `FKjyu2qbqt8gnvno9oe9j2s2ldk` FOREIGN KEY (`order_id`) REFERENCES `orders` (`order_id`);
 
 --
 -- Constraints for table `order_tracking`
 --
 ALTER TABLE `order_tracking`
-  ADD CONSTRAINT `fk_order_tracking` FOREIGN KEY (`order_id`) REFERENCES `orders` (`order_id`) ON DELETE CASCADE;
+  ADD CONSTRAINT `FKeu0lumcx8bcx6lk035xiklty0` FOREIGN KEY (`order_id`) REFERENCES `orders` (`order_id`);
 
 --
 -- Constraints for table `payment_methods`
 --
 ALTER TABLE `payment_methods`
-  ADD CONSTRAINT `fk_user_payments` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
+  ADD CONSTRAINT `FKin7rtmim3ljrrhh5kxbq27s2v` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`);
 
 --
 -- Constraints for table `products`
 --
 ALTER TABLE `products`
-  ADD CONSTRAINT `products_ibfk_1` FOREIGN KEY (`category_id`) REFERENCES `categories` (`category_id`);
+  ADD CONSTRAINT `FKog2rp4qthbtt2lfyhfo32lsw9` FOREIGN KEY (`category_id`) REFERENCES `categories` (`category_id`);
 
 --
 -- Constraints for table `product_images`
 --
 ALTER TABLE `product_images`
-  ADD CONSTRAINT `fk_product_images` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`) ON DELETE CASCADE;
+  ADD CONSTRAINT `FKqnq71xsohugpqwf3c9gxmsuy` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`);
 
 --
 -- Constraints for table `reviews`
 --
 ALTER TABLE `reviews`
-  ADD CONSTRAINT `fk_reviews_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `fk_reviews_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
+  ADD CONSTRAINT `FKcgy7qjc1r99dp117y9en6lxye` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
+  ADD CONSTRAINT `FKpl51cejpw4gy5swfar8br9ngi` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`);
 
 --
 -- Constraints for table `user_addresses`
 --
 ALTER TABLE `user_addresses`
-  ADD CONSTRAINT `fk_user_addresses` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
+  ADD CONSTRAINT `FKn2fisxyyu3l9wlch3ve2nocgp` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`);
 
 --
 -- Constraints for table `wishlist`
 --
 ALTER TABLE `wishlist`
-  ADD CONSTRAINT `fk_wishlist_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `fk_wishlist_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
+  ADD CONSTRAINT `FK6p7qhvy1bfkri13u29x6pu8au` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`),
+  ADD CONSTRAINT `FKtrd6335blsefl2gxpb8lr0gr7` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

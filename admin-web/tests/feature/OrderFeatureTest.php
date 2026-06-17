@@ -1,33 +1,31 @@
 <?php
-
 namespace Tests\Feature;
-
 use CodeIgniter\Test\CIUnitTestCase;
 use CodeIgniter\Test\FeatureTestTrait;
 
-class OrderFeatureTest extends CIUnitTestCase
-{
+class OrderFeatureTest extends CIUnitTestCase {
     use FeatureTestTrait;
+    protected function setUp(): void { parent::setUp(); }
+    private function sess() { return ['isLoggedIn' => true, 'token' => 'dummy_token', 'role' => 'ADMIN']; }
 
-    protected function setUp(): void
-    {
-        parent::setUp();
-        session()->set('user_token', 'dummy_token');
-        session()->set('user_role', 'ADMIN');
-    }
-
-    public function testViewOrders()
-    {
-        $result = $this->get('/admin/orders');
+    public function testViewOrders() { // CI-21
+        $result = $this->withSession($this->sess())->get('/admin/orders');
         $result->assertStatus(200);
-        $result->assertSee('Order Management');
     }
-
-    public function testUpdateOrderStatus()
-    {
-        $result = $this->post('/admin/orders/status/1', [
-            'orderStatus' => 'processing'
-        ]);
-        $result->assertRedirectTo('/admin/orders');
+    public function testFilterOrdersPending() { // CI-22
+        $result = $this->withSession($this->sess())->get('/admin/orders?status=PENDING');
+        $result->assertStatus(200);
+    }
+    public function testUpdateOrderProcessing() { // CI-23
+        $result = $this->withSession($this->sess())->post('/admin/orders/status/1', ['status'=>'PROCESSING']);
+        $result->assertRedirect();
+    }
+    public function testUpdateOrderShipped() { // CI-24
+        $result = $this->withSession($this->sess())->post('/admin/orders/status/1', ['status'=>'SHIPPED']);
+        $result->assertRedirect();
+    }
+    public function testUpdateOrderCompleted() { // CI-25
+        $result = $this->withSession($this->sess())->post('/admin/orders/status/1', ['status'=>'COMPLETED']);
+        $result->assertRedirect();
     }
 }

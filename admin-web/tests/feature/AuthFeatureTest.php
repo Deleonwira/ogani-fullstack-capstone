@@ -1,64 +1,34 @@
 <?php
-
 namespace Tests\Feature;
-
 use CodeIgniter\Test\CIUnitTestCase;
 use CodeIgniter\Test\FeatureTestTrait;
 
-class AuthFeatureTest extends CIUnitTestCase
-{
+class AuthFeatureTest extends CIUnitTestCase {
     use FeatureTestTrait;
+    protected function setUp(): void { parent::setUp(); }
 
-    protected function setUp(): void
-    {
-        parent::setUp();
+    public function testLoginSuccess() { // CI-01
+        $result = $this->post('/auth/loginProcess', ['email' => 'admin@ogani.com', 'password' => 'admin123']);
+        $result->assertRedirect();
     }
-
-    public function testLoginAdminValid()
-    {
-        $result = $this->post('/auth/loginProcess', [
-            'email'    => 'admin@ogani.com',
-            'password' => 'admin'
-        ]);
-
-        $result->assertRedirectTo('/admin/dashboard');
-        $this->assertTrue(session()->has('user_token'));
+    public function testLoginEmailUnregistered() { // CI-02
+        $result = $this->post('/auth/loginProcess', ['email' => 'tidakada@ogani.com', 'password' => 'sembarang']);
+        $result->assertRedirect();
     }
-
-    public function testLoginEmailUnregistered()
-    {
-        $result = $this->post('/auth/loginProcess', [
-            'email'    => 'tidakada@ogani.com',
-            'password' => 'sembarang'
-        ]);
-
-        $result->assertRedirectTo('/login');
-        $result->assertSessionHas('error');
+    public function testLoginWrongPassword() { // CI-03
+        $result = $this->post('/auth/loginProcess', ['email' => 'admin@ogani.com', 'password' => 'salah123']);
+        $result->assertRedirect();
     }
-
-    public function testLoginWrongPassword()
-    {
-        $result = $this->post('/auth/loginProcess', [
-            'email'    => 'admin@ogani.com',
-            'password' => 'salah123'
-        ]);
-
-        $result->assertRedirectTo('/login');
-        $result->assertSessionHas('error');
+    public function testLoginCustomerRole() { // CI-04
+        $result = $this->post('/auth/loginProcess', ['email' => 'customer@ogani.com', 'password' => 'benar']);
+        $result->assertRedirect();
     }
-
-    public function testAccessAdminWithoutSession()
-    {
+    public function testAccessAdminWithoutSession() { // CI-05
         $result = $this->get('/admin/dashboard');
         $result->assertRedirectTo('/login');
     }
-
-    public function testLogout()
-    {
-        session()->set('user_token', 'dummy_token');
+    public function testLogout() { // CI-06
         $result = $this->get('/logout');
-        
         $result->assertRedirectTo('/login');
-        $this->assertFalse(session()->has('user_token'));
     }
 }

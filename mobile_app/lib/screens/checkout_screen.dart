@@ -23,9 +23,21 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   bool _isApplyingPromo = false;
 
   // Address State
-  String _addressName = 'Home Address';
-  String _addressDetail = '123 Organic Lane, Fresh Garden Estate\nSan Francisco, CA 94103';
-  String _addressPhone = '+1 (555) 000-1234';
+  String _addressName = '';
+  String _addressDetail = '';
+  String _addressPhone = '';
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize address with actual user profile data instead of mock
+    final user = Provider.of<AuthProvider>(context, listen: false).user;
+    if (user != null) {
+      _addressName = user['fullName'] ?? 'My Name';
+      _addressDetail = user['address'] ?? 'Please set your address';
+      _addressPhone = user['phoneNumber'] ?? 'Please set your phone number';
+    }
+  }
 
   void _showEditAddressDialog() {
     final nameController = TextEditingController(text: _addressName);

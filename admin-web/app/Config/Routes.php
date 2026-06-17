@@ -33,7 +33,7 @@ $routes->get('/admin/categories/delete/(:num)', 'Admin::deleteCategory/$1');
 $routes->post('/admin/promos/save', 'Admin::savePromo');
 $routes->get('/admin/promos/delete/(:num)', 'Admin::deletePromo/$1');
 
-$routes->get('/admin/reviews/delete/(:num)', 'Admin::deleteReview/$1');
+
 
 $routes->get('/admin/users/delete/(:num)', 'Admin::deleteUser/$1');
 $routes->post('/admin/users/update/(:num)', 'Admin::updateUserByAdmin/$1');

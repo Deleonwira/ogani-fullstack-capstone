@@ -15,7 +15,6 @@
                 <th class="py-4 px-6 font-label-md text-label-md text-on-surface-variant border-b border-outline-variant/50">Customer</th>
                 <th class="py-4 px-6 font-label-md text-label-md text-on-surface-variant border-b border-outline-variant/50">Rating</th>
                 <th class="py-4 px-6 font-label-md text-label-md text-on-surface-variant border-b border-outline-variant/50">Comment</th>
-                <th class="py-4 px-6 font-label-md text-label-md text-on-surface-variant border-b border-outline-variant/50 text-right">Actions</th>
             </tr>
         </thead>
         <tbody class="divide-y divide-outline-variant/30">
@@ -26,13 +25,10 @@
                     <td class="py-4 px-6"><?= esc($r['user']['fullName'] ?? $r['user']['username'] ?? 'Unknown User') ?></td>
                     <td class="py-4 px-6 font-bold text-tertiary">⭐ <?= esc($r['rating'] ?? 0) ?></td>
                     <td class="py-4 px-6 max-w-xs truncate"><?= esc($r['content'] ?? '') ?></td>
-                    <td class="py-4 px-6 text-right">
-                        <a href="<?= base_url('admin/reviews/delete/' . esc($r['reviewId'])) ?>" onclick="return confirm('Delete this review?')" class="text-error hover:bg-error-container/10 p-2 rounded-full"><span class="material-symbols-outlined">delete</span></a>
-                    </td>
                 </tr>
             <?php endforeach; ?>
         <?php else: ?>
-            <tr><td colspan="5" class="text-center py-8">No reviews found.</td></tr>
+            <tr><td colspan="4" class="text-center py-8">No reviews found.</td></tr>
         <?php endif; ?>
         </tbody>
     </table>

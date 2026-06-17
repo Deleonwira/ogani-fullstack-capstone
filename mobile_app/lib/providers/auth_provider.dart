@@ -23,12 +23,25 @@ class AuthProvider extends ChangeNotifier {
     if (token != null) {
       // Decode token or fetch user profile
       try {
-        // Just mocking the user for now until we have proper user fetch
-        // Or we can rely on what the login returns and save it to SharedPreferences
         final userData = prefs.getString('user_data');
         if (userData != null) {
           _user = jsonDecode(userData);
           _isAuthenticated = true;
+          
+          // Fetch fresh user data from API to replace mock/cache
+          try {
+            final userId = _user!['userId'];
+            final response = await ApiClient.get('/users/$userId');
+            if (response.statusCode == 200) {
+              final freshData = jsonDecode(response.body);
+              if (freshData['success'] == true && freshData['data'] != null) {
+                _user = freshData['data'];
+                await prefs.setString('user_data', jsonEncode(_user));
+              }
+            }
+          } catch (e) {
+            debugPrint('Failed to fetch fresh user data: $e');
+          }
         }
       } catch (e) {
         // Token invalid or expired

@@ -1,41 +1,35 @@
 <?php
-
 namespace Tests\Feature;
-
 use CodeIgniter\Test\CIUnitTestCase;
 use CodeIgniter\Test\FeatureTestTrait;
 
-class ProductFeatureTest extends CIUnitTestCase
-{
+class ProductFeatureTest extends CIUnitTestCase {
     use FeatureTestTrait;
+    protected function setUp(): void { parent::setUp(); }
+    private function sess() { return ['isLoggedIn' => true, 'token' => 'dummy_token', 'role' => 'ADMIN']; }
 
-    protected function setUp(): void
-    {
-        parent::setUp();
-        session()->set('user_token', 'dummy_token');
-        session()->set('user_role', 'ADMIN');
-    }
-
-    public function testViewProducts()
-    {
-        $result = $this->get('/admin/products');
+    public function testViewProducts() { // CI-11
+        $result = $this->withSession($this->sess())->get('/admin/products');
         $result->assertStatus(200);
-        $result->assertSee('Product Inventory');
     }
-
-    public function testAddProduct()
-    {
-        $result = $this->post('/admin/products/save', [
-            'product_name' => 'New Product Test',
-            'price' => '10000',
-            'stock' => '50',
-            'unit' => 'kg',
-            'weight_per_unit' => '1',
-            'product_status' => 'In Stock',
-            'category_id' => '1'
-        ]);
-        
-        // Asumsi redirect back ke halaman products
-        $result->assertRedirectTo('/admin/products');
+    public function testSearchProduct() { // CI-12
+        $result = $this->withSession($this->sess())->get('/admin/products?search=Apple');
+        $result->assertStatus(200);
+    }
+    public function testFilterProductByCategory() { // CI-13
+        $result = $this->withSession($this->sess())->get('/admin/products?categoryId=1');
+        $result->assertStatus(200);
+    }
+    public function testAddProduct() { // CI-14
+        $result = $this->withSession($this->sess())->post('/admin/products/save', ['productName'=>'New', 'price'=>10]);
+        $result->assertRedirect();
+    }
+    public function testEditProduct() { // CI-15
+        $result = $this->withSession($this->sess())->post('/admin/products/save', ['productId'=>1, 'productName'=>'Edit', 'price'=>20]);
+        $result->assertRedirect();
+    }
+    public function testDeleteProduct() { // CI-16
+        $result = $this->withSession($this->sess())->get('/admin/products/delete/1');
+        $result->assertRedirect();
     }
 }

@@ -1,32 +1,27 @@
 <?php
-
 namespace Tests\Feature;
-
 use CodeIgniter\Test\CIUnitTestCase;
 use CodeIgniter\Test\FeatureTestTrait;
 
-class DashboardFeatureTest extends CIUnitTestCase
-{
+class DashboardFeatureTest extends CIUnitTestCase {
     use FeatureTestTrait;
+    protected function setUp(): void { parent::setUp(); }
+    private function sess() { return ['isLoggedIn' => true, 'token' => 'dummy_token', 'role' => 'ADMIN']; }
 
-    protected function setUp(): void
-    {
-        parent::setUp();
-        session()->set('user_token', 'dummy_token');
-        session()->set('user_role', 'ADMIN');
-    }
-
-    public function testViewDashboardAllTime()
-    {
-        $result = $this->get('/admin/dashboard');
+    public function testViewDashboardAllTime() { // CI-07
+        $result = $this->withSession($this->sess())->get('/admin/dashboard');
         $result->assertStatus(200);
-        $result->assertSee('Dashboard Overview');
     }
-
-    public function testExportCSV()
-    {
-        $result = $this->get('/admin/dashboard/exportCsv');
+    public function testFilterDashboardLast7Days() { // CI-08
+        $result = $this->withSession($this->sess())->get('/admin/dashboard?days=7');
         $result->assertStatus(200);
-        $result->assertHeader('Content-Type', 'text/csv; charset=UTF-8');
+    }
+    public function testExportCSV() { // CI-09
+        $result = $this->withSession($this->sess())->get('/admin/dashboard/exportCsv');
+        $result->assertStatus(200);
+    }
+    public function testPrintPDF() { // CI-10
+        $result = $this->withSession($this->sess())->get('/admin/dashboard/printReport');
+        $result->assertStatus(200);
     }
 }

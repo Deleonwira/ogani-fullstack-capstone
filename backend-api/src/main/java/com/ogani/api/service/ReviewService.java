@@ -22,8 +22,5 @@ public class ReviewService {
                 .orElseThrow(() -> new ResourceNotFoundException("Review not found with id: " + id));
     }
 
-    public void deleteReview(Integer id) {
-        Review review = getReviewById(id);
-        reviewRepository.delete(review);
-    }
+
 }
